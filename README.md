@@ -1,15 +1,11 @@
 # Enterprise Data & AI Integration Platform
 
-**MuleSoft + Snowflake + AI-powered Customer Intelligence — architecture and proof of concept**
+**MuleSoft + Snowflake + AI-powered Customer Intelligence: architecture and proof of concept**
 
 [![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
 [![Tests](https://img.shields.io/badge/tests-245%20passing-success)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-84%25-success)](tests/)
 [![MuleSoft](https://img.shields.io/badge/MuleSoft-Mule%204.6-00A0DF?logo=mulesoft&logoColor=white)](mule/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data%20Platform-29B5E8?logo=snowflake&logoColor=white)](snowflake/)
-[![API](https://img.shields.io/badge/API-OAS%203.0%20%2B%20RAML%201.0-6BA539?logo=openapiinitiative&logoColor=white)](api-specs/)
-[![Runs locally](https://img.shields.io/badge/runs%20locally-no%20cloud%20account-blueviolet)](#running-it)
-[![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 > **This repository is an independent architecture and proof-of-concept project
 > designed to demonstrate enterprise Data, Integration and AI architecture
@@ -20,9 +16,26 @@
 
 ---
 
+## Why I built this
+
+Most of my work has been on the integration side: MuleSoft, API-led design, the
+usual argument about where a transformation belongs. The interesting problems
+lately sit one layer over, where the integration platform, the warehouse and now
+an AI capability all have to be designed together instead of bolted onto each
+other afterwards.
+
+I wanted one worked example of that rather than three separate demos, so I picked
+a customer-intelligence use case, built the whole path, and wrote down the
+decisions I made and the ones I rejected. The Customer 360 and the churn scoring
+came first; the AI layer came last, on purpose, because it is the part that only
+works if the governance underneath it is already right.
+
+It runs on a laptop. That constraint did more for the design than anything else,
+because anything that cannot be executed cannot be checked.
+
 ## The business problem
 
-**Acme Retail Corporation** (fictional) holds customer data in seven systems —
+**Acme Retail Corporation** (fictional) holds customer data in seven systems,
 CRM, e-commerce, ERP, order management, customer support, loyalty and the product
 catalogue. Twelve applications need combinations of them.
 
@@ -32,7 +45,7 @@ Three consequences, and each one is an architectural requirement:
    retaining?" needs order value, service history and loyalty standing at once.
    Today an analyst assembles it by hand, differently each time.
 2. **Every new consumer is a new integration.** Seven sources × twelve consumers
-   is up to 84 point-to-point connections — 84 places a schema change can break
+   is up to 84 point-to-point connections, 84 places a schema change can break
    something, and 84 places an entitlement decision is made differently.
 3. **AI cannot be introduced safely.** There is no governed, PII-controlled,
    point-in-time view for a model to read. Pointing an LLM at the CRM would give
@@ -47,18 +60,18 @@ flowchart LR
         MK["Marketing"]
         BI["BI"]
     end
-    subgraph M["MuleSoft · API-led"]
-        E["Experience<br/>shape · mask · SLA"]
-        P["Process<br/>orchestrate · degrade"]
+    subgraph M["MuleSoft / API-led"]
+        E["Experience<br/>shape / mask / SLA"]
+        P["Process<br/>orchestrate / degrade"]
         S["System<br/>one per source"]
     end
     subgraph SF["Snowflake"]
         L["RAW → STAGING → CORE<br/>→ ANALYTICS → AI"]
     end
     subgraph A["AI service"]
-        G["grounded · guarded<br/>audited · reviewable"]
+        G["grounded / guarded<br/>audited / reviewable"]
     end
-    SRC[("CRM · OMS · Support<br/>Loyalty · PIM")]
+    SRC[("CRM / OMS / Support<br/>Loyalty / PIM")]
     C --> E --> P --> S --> SF
     P --> A --> SF
     S --> SRC
@@ -67,9 +80,9 @@ flowchart LR
 
 | Layer | What it does | Detail |
 |---|---|---|
-| **Integration** | API-led connectivity in three layers, so replacing a source system changes **one application** | [architecture.md](docs/architecture.md) · [ADR-001](docs/decisions/ADR-001-api-led-connectivity.md) |
-| **Data** | Six-schema Snowflake platform; materialised Customer 360 where every derived metric is explainable in one sentence | [data-architecture.md](docs/data-architecture.md) · [ADR-002](docs/decisions/ADR-002-snowflake-data-platform.md) |
-| **AI** | A separate service reading a PII-free, point-in-time view, with **no path to any source system** | [ai-architecture.md](docs/ai-architecture.md) · [ADR-004](docs/decisions/ADR-004-ai-separated-from-integration.md) |
+| **Integration** | API-led connectivity in three layers, so replacing a source system changes **one application** | [architecture.md](docs/architecture.md), [ADR-001](docs/decisions/ADR-001-api-led-connectivity.md) |
+| **Data** | Six-schema Snowflake platform; materialised Customer 360 where every derived metric is explainable in one sentence | [data-architecture.md](docs/data-architecture.md), [ADR-002](docs/decisions/ADR-002-snowflake-data-platform.md) |
+| **AI** | A separate service reading a PII-free, point-in-time view, with **no path to any source system** | [ai-architecture.md](docs/ai-architecture.md), [ADR-004](docs/decisions/ADR-004-ai-separated-from-integration.md) |
 
 ---
 
@@ -128,7 +141,7 @@ TOKEN=$(curl -s -X POST localhost:8080/oauth/token \
 &client_secret=change-me-local-only&scope=customer:read insights:read ai:invoke" \
   | jq -r .access_token)
 
-# Unified customer view — experience → process → system → SQL API → warehouse
+# Unified customer view, experience → process → system → SQL API → warehouse
 curl -s -H "Authorization: Bearer $TOKEN" -H "x-correlation-id: demo-1" \
   "localhost:8080/api/v1/customers/CRM-100005/360?orderLimit=2" | jq
 ```
@@ -147,8 +160,8 @@ curl -s -H "Authorization: Bearer $TOKEN" -H "x-correlation-id: demo-1" \
   "analytics": {
     "totalOrders": 15, "totalNetRevenue": 3070.26, "avgOrderValue": 219.3,
     "engagementScore": 63.67,
-    "customerLifetimeValue": 3070.26,            // realised — a fact
-    "predictedClv12m": 2703.52,                  // predicted — never conflated
+    "customerLifetimeValue": 3070.26,            // realised, a fact
+    "predictedClv12m": 2703.52,                  // predicted, never conflated
     "valueTier": "HIGH"
   },
   "churnRisk": {
@@ -169,7 +182,7 @@ curl -s -H "Authorization: Bearer $TOKEN" -H "x-correlation-id: demo-1" \
 ```
 
 ```bash
-# Grounded AI analysis — audited, and this one always needs human approval
+# Grounded AI analysis, audited, and this one always needs human approval
 curl -s -X POST -H "Authorization: Bearer $TOKEN" \
   -H 'content-type: application/json' -H 'Idempotency-Key: demo-key-1' \
   --data '{"capability":"NEXT_BEST_ACTION"}' \
@@ -226,7 +239,7 @@ mule/            4 Mule 4 applications: flows, DataWeave, MUnit, policies, per-e
 snowflake/       35 SQL scripts across 6 schemas: DDL, transforms, C360, AI, DQ, security
 services/        the runnable stand-in: 3 API-led layers, SQL API, AI service, 5 source mocks
 local_warehouse/ DuckDB executing the real Snowflake SQL through a documented dialect shim
-sample-data/     deterministic dataset with 8 deliberately planted quality defects
+sample-data/     deterministic dataset with 8 intentionally planted quality defects
 tests/           245 tests: unit, data, API, AI evaluation, integration
 docs/            12 architecture documents, 8 ADRs, generated data dictionary
 diagrams/        10 diagram sets, 39 Mermaid diagrams
@@ -242,7 +255,7 @@ diagrams/        10 diagram sets, 39 Mermaid diagrams
 - **Three-layer API-led connectivity** with the boundary rules written down and
   checked in review, not just drawn.
 - **Source normalisation that pays off**: the CRM's `CustomerNumber`, the OMS's
-  `status`, the loyalty platform's 404-for-unenrolled — each absorbed in exactly
+  `status`, the loyalty platform's 404-for-unenrolled, each absorbed in exactly
   one file.
 - **Graceful degradation as a contract**: `partial` and `degradedFields` are in
   the published spec, so a consumer can tell "no orders" from "the order system
@@ -257,28 +270,28 @@ diagrams/        10 diagram sets, 39 Mermaid diagrams
 ### Data architecture
 
 - **Six layers with explicit contracts** and a stated rule for what each may be.
-- **SCD2 where it earns its place** — and nowhere else — with source-timestamp
+- **SCD2 where it earns its place**. And nowhere else, with source-timestamp
   effective dating and three tested invariants.
 - **Deterministic hash surrogate keys**, so a rebuild is safe.
 - **Two-stage identity resolution** with survivorship, and suppressed duplicates
-  *recorded* rather than discarded.
+  *recorded* instead of discarded.
 - **Every derived metric defined once and explainable in one sentence**;
   realised and predicted value never conflated.
 - **22 data quality rules across all six dimensions**, held as data, with three
-  severities and quarantine rather than deletion.
+  severities and quarantine and not deletion.
 - **Declared lineage that crosses the database boundary** into MuleSoft.
 
 ### AI architecture
 
 - **The model has no path to any source system.** It reads a view with no
-  identifiers in it — absent by construction, not filtered.
+  identifiers in it: absent by construction, not filtered.
 - **Versioned prompts**, with the version recorded on every generated insight.
 - **Output guardrails**: every number traceable to the grounding block, no PII,
   no commitments, actions from a closed list.
 - **Confidence derived from measurable signals**, not self-reported by the model.
-- **Human-in-the-loop where it matters**, and a deliberately small queue.
+- **Human-in-the-loop where it matters**, and a on purpose small queue.
 - **RAG with a similarity floor**, so "the knowledge base does not cover this" is
-  reachable — and tested.
+  reachable, and tested.
 - **A CI evaluation gate**: groundedness, relevance, safety, consistency, PII
   leakage.
 - **A transparent churn baseline**, honest about being a heuristic, with drivers
@@ -289,7 +302,7 @@ diagrams/        10 diagram sets, 39 Mermaid diagrams
 - Threat model → controls → backstops, with defence in depth stated as such.
 - One correlation id across API, three flow layers, the warehouse `QUERY_TAG` and
   the AI audit table.
-- RTO/RPO per failure mode, with the reasoning — and labelled as assumptions.
+- RTO/RPO per failure mode, with the reasoning: and labelled as assumptions.
 - Cost as a design obligation: warehouse separation, auto-suspend, resource
   monitors, opt-in generation, caching, idempotency.
 - A pipeline where nothing requiring a cloud account blocks a green build.
@@ -312,7 +325,7 @@ one that admits them.
   dataset has no labelled churn outcome. Weights are a documented business
   assumption. There is no accuracy figure and there should not be.
 - **The local AI provider is deterministic and offline.** It exercises the
-  pipeline — grounding, redaction, guardrails, evaluation, audit — not a language
+  pipeline, grounding, redaction, guardrails, evaluation, audit. Not a language
   model. The local embedder is lexical (hashed TF-IDF with light stemming), not
   semantic.
 - **Volumes are small**: 60 customers, 351 orders, 129 support cases, 10
@@ -327,7 +340,7 @@ one that admits them.
 
 ## Future work
 
-- Events for propagation — designed in
+- Events for propagation. Designed in
   [event-driven-architecture.md](docs/event-driven-architecture.md); the four
   preconditions are in [ADR-005](docs/decisions/ADR-005-apis-versus-events.md).
 - A fitted churn model once a labelled outcome exists. The feature store is the
@@ -340,16 +353,16 @@ one that admits them.
 
 ---
 
-## Author
+## Notes
 
-Built as an independent architecture exercise to work through enterprise Data,
-Integration and AI architecture end to end — from source-system quirks to
-governed AI output — and to have something concrete to reason about rather than
-a diagram.
+This is a personal project, built and maintained on my own time. It is not
+finished in the sense that any platform is finished; the [future work](#future-work)
+list is what I would pick up next.
 
-If you are reviewing this for a role: [`docs/interview-guide.md`](docs/interview-guide.md)
-contains the questions I would ask about it, the answers I would give, and the
-list of things I will not claim.
+If you are reviewing this for a role, start with
+[`docs/interview-guide.md`](docs/interview-guide.md). It has the questions I would
+ask about this design, the answers I would give, and section 12 lists what I will
+not claim about it. I would rather you read that than assume.
 
 Licensed under [MIT](LICENSE). All company names, customer records and knowledge
 articles are synthetic. No real personal data appears anywhere in this
