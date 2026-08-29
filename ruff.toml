@@ -1,0 +1,42 @@
+# Lint configuration.
+#
+# The rule set is chosen to catch the things that cause defects rather than the
+# things that cause arguments: real bugs (B, S), unused code (F), and a few
+# clarity rules. Formatting opinions are left to the formatter.
+line-length = 100
+target-version = "py311"
+extend-exclude = ["local_warehouse/*.duckdb"]
+
+[lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes - undefined names, unused imports
+    "W",      # pycodestyle warnings
+    "I",      # import ordering
+    "B",      # bugbear - real bug patterns
+    "C4",     # comprehension clarity
+    "UP",     # outdated syntax
+    "S",      # bandit security rules
+    "RET",    # return-statement clarity
+    "SIM",    # simplifiable code
+    "PTH",    # pathlib over os.path
+]
+ignore = [
+    "E501",   # long lines are handled by line-length, and comments explaining a
+              # design decision are worth more than a hard wrap
+    "S101",   # assert is the point of a test suite
+    "B008",   # FastAPI dependencies are declared as call defaults by design
+    "S105",   # false positives on scope names such as "client_credentials"
+    "S311",   # the sample-data generator uses `random` for synthetic data, not crypto
+    "RET504", # a named result before return is often clearer
+    "SIM108", # a ternary is not always more readable than an if/else
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["S106", "S108", "B011"]
+"scripts/generate_sample_data.py" = ["S311"]
+"services/common/security.py" = ["S106"]
+
+[lint.isort]
+known-first-party = ["common", "ai_service", "data_api", "gateway", "mock_services",
+                     "local_warehouse"]
