@@ -1,0 +1,47 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ---- Java / Mule ----
+target/
+.mule/
+*.jar
+*.class
+.settings/
+.project
+.classpath
+
+# ---- Node ----
+node_modules/
+
+# ---- Local build output ----
+local_warehouse/*.duckdb
+local_warehouse/*.duckdb.wal
+build/
+dist/
+*.log
+
+# ---- Secrets: never commit ----
+.env
+.env.*
+!.env.example
+*.p12
+*.jks
+*.pem
+*.key
+secrets/
+mule/**/src/main/resources/*-secure.yaml
+
+# ---- IDE / OS ----
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

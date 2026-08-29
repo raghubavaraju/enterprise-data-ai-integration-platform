@@ -1,0 +1,136 @@
+# =============================================================================
+# Local platform.  `make up` starts everything; nothing here needs a cloud
+# account, a licence or a credit card.
+#
+#   :8080  experience API  (+ mock OAuth token endpoint)
+#   :8091  process API
+#   :8090  system API layer
+#   :8092  Snowflake SQL API (local) - the ONLY process that opens the warehouse
+#   :8087  AI service
+#   :8081-8085  mock source systems (CRM, OMS, Support, Loyalty, PIM)
+#
+# The warehouse has a single owner on purpose: DuckDB allows one read-write
+# process, and routing every other service through the SQL API is also what the
+# cloud topology does.  See services/common/data_platform.py.
+# =============================================================================
+name: acme-edp
+
+x-common: &common
+  build: .
+  image: acme-edp:local
+  env_file: [.env]
+  environment:
+    PYTHONPATH: /app:/app/services
+    PLATFORM_MODE: local
+  restart: unless-stopped
+  networks: [acme]
+
+services:
+  # --------------------------------------------------------------- source systems
+  crm:
+    <<: *common
+    command: uvicorn mock_services.crm.app:app --host 0.0.0.0 --port 8081
+    ports: ["8081:8081"]
+    environment: {PORT: "8081", PYTHONPATH: "/app:/app/services"}
+
+  orders:
+    <<: *common
+    command: uvicorn mock_services.orders.app:app --host 0.0.0.0 --port 8082
+    ports: ["8082:8082"]
+    environment: {PORT: "8082", PYTHONPATH: "/app:/app/services"}
+
+  support:
+    <<: *common
+    command: uvicorn mock_services.support.app:app --host 0.0.0.0 --port 8083
+    ports: ["8083:8083"]
+    environment: {PORT: "8083", PYTHONPATH: "/app:/app/services"}
+
+  loyalty:
+    <<: *common
+    command: uvicorn mock_services.loyalty.app:app --host 0.0.0.0 --port 8084
+    ports: ["8084:8084"]
+    environment: {PORT: "8084", PYTHONPATH: "/app:/app/services"}
+
+  catalog:
+    <<: *common
+    command: uvicorn mock_services.catalog.app:app --host 0.0.0.0 --port 8085
+    ports: ["8085:8085"]
+    environment: {PORT: "8085", PYTHONPATH: "/app:/app/services"}
+
+  # ------------------------------------------------------------- data platform
+  warehouse-init:
+    <<: *common
+    command: python -m local_warehouse.build --verify
+    environment:
+      PYTHONPATH: /app:/app/services
+      WAREHOUSE_ACCESS: direct
+    volumes: ["warehouse:/app/local_warehouse"]
+    restart: "no"
+
+  snowflake-data-api:
+    <<: *common
+    command: uvicorn data_api.app:app --host 0.0.0.0 --port 8092
+    ports: ["8092:8092"]
+    environment:
+      PORT: "8092"
+      PYTHONPATH: /app:/app/services
+      # The single warehouse owner.
+      WAREHOUSE_ACCESS: direct
+    volumes: ["warehouse:/app/local_warehouse"]
+    depends_on:
+      warehouse-init: {condition: service_completed_successfully}
+
+  # ----------------------------------------------------------------- AI service
+  ai-service:
+    <<: *common
+    command: uvicorn ai_service.app:app --host 0.0.0.0 --port 8087
+    ports: ["8087:8087"]
+    environment:
+      PORT: "8087"
+      PYTHONPATH: /app:/app/services
+      WAREHOUSE_ACCESS: api
+      SNOWFLAKE_DATA_API_URL: http://snowflake-data-api:8092
+    depends_on: [snowflake-data-api]
+
+  # ------------------------------------------------------------ API-led layers
+  system-api:
+    <<: *common
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8090
+    environment:
+      GATEWAY_LAYER: system
+      PYTHONPATH: /app:/app/services
+      SNOWFLAKE_DATA_API_URL: http://snowflake-data-api:8092
+      CRM_SYSTEM_URL: http://crm:8081
+      ORDER_SYSTEM_URL: http://orders:8082
+      SUPPORT_SYSTEM_URL: http://support:8083
+      LOYALTY_SYSTEM_URL: http://loyalty:8084
+      CATALOG_SYSTEM_URL: http://catalog:8085
+    ports: ["8090:8090"]
+    depends_on: [snowflake-data-api, crm, orders, support, loyalty]
+
+  process-api:
+    <<: *common
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8091
+    environment:
+      GATEWAY_LAYER: process
+      PYTHONPATH: /app:/app/services
+      SYSTEM_API_URL: http://system-api:8090
+      AI_SERVICE_URL: http://ai-service:8087
+    ports: ["8091:8091"]
+    depends_on: [system-api, ai-service]
+
+  experience-api:
+    <<: *common
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8080
+    environment:
+      GATEWAY_LAYER: experience
+      PYTHONPATH: /app:/app/services
+      PROCESS_API_URL: http://process-api:8091
+    ports: ["8080:8080"]
+    depends_on: [process-api]
+
+networks:
+  acme: {}
+
+volumes:
+  warehouse: {}
