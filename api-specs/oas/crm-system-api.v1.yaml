@@ -1,0 +1,61 @@
+openapi: 3.0.3
+info:
+  title: CRM System API
+  version: 1.0.0
+  description: |
+    System layer.  The single point in the estate that knows how Acme's CRM
+    talks.
+
+    It exists to absorb the CRM's vocabulary and quirks - `CustomerNumber` for
+    the business key, timestamps without a timezone, 200-with-empty-list where a
+    404 would be correct - so that no consumer ever learns them.  The payoff is
+    concrete: when the CRM is replaced, this one application changes and nothing
+    else does.
+servers:
+  - url: https://system.internal.acme-retail.example.com/crm/v1
+  - url: http://localhost:8090/api/v1/crm
+security:
+  - OAuth2ClientCredentials: [customer:read]
+paths:
+  /customers/{customerId}:
+    get:
+      tags: [customers]
+      operationId: getCrmCustomer
+      summary: Canonical customer record
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - name: fault
+          in: query
+          description: >
+            Local-mode fault injection for resilience testing
+            (`timeout`, `error`, `throttle`, `flaky`). Rejected outside local mode.
+          schema: {type: string, enum: [timeout, error, throttle, flaky]}
+      responses:
+        '200':
+          description: Canonical customer.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerId: {type: string}
+                  firstName: {type: string}
+                  lastName: {type: string}
+                  email: {type: string}
+                  phone: {type: string}
+                  birthDate: {type: string, format: date}
+                  segment: {type: string}
+                  preferredChannel: {type: string}
+                  marketingOptIn: {type: boolean}
+                  status: {type: string}
+                  createdAt: {type: string}
+                  sourceSystem: {type: string, example: CRM}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '503': {$ref: '../fragments/error.oas.yaml#/components/responses/ServiceUnavailable'}
+        '504': {$ref: '../fragments/error.oas.yaml#/components/responses/GatewayTimeout'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'

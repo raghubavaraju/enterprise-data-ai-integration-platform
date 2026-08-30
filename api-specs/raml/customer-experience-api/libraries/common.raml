@@ -1,0 +1,32 @@
+#%RAML 1.0 Library
+usage: |
+  Shared response metadata and pagination. Published to Exchange as a fragment
+  so every API in the estate uses one definition rather than a near-copy.
+
+types:
+  ResponseMeta:
+    description: |
+      `partial` and `degradedFields` are part of the contract, not an
+      afterthought. They are what let a client distinguish "this customer has no
+      orders" from "the order system was unavailable" - a distinction that
+      cannot be added later without breaking every consumer that assumed silence
+      meant absence.
+    properties:
+      correlationId: string
+      partial: boolean
+      degradedFields?: string[]
+      dataCompletenessScore?: number
+      contributingSources?: string[]
+      asOf?: datetime-only
+      elapsedMs?: number
+
+  Pagination:
+    properties:
+      limit: integer
+      offset: integer
+      total: integer
+      hasMore:
+        type: boolean
+        description: |
+          Explicit and not inferred from offset + limit >= total, which is
+          wrong the moment the collection changes between pages.

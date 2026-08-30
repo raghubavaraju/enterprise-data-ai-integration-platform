@@ -1,0 +1,186 @@
+#%RAML 1.0
+title: Acme Customer Experience API
+version: v1
+baseUri: https://api.acme-retail.example.com/experience/{version}
+mediaType: application/json
+protocols: [HTTPS]
+
+description: |
+  Client-facing API for the Acme Retail service-desk application.
+
+  Published to Anypoint Exchange.  The RAML is the contract MuleSoft generates
+  the flow skeleton and the APIkit router from; the OAS equivalent in
+  `api-specs/oas/` is what the rest of the toolchain reads.  Both are kept in
+  step by CI (`scripts/validate_api_specs.py`).
+
+  Reuse is deliberate: data types, traits and security schemes are separate
+  fragments so that they can be published to Exchange independently and reused
+  by the AI Insights API and by future experience APIs. A monolithic RAML is
+  easy to write once and impossible to govern afterwards.
+
+uses:
+  common: libraries/common.raml
+
+securitySchemes:
+  oauth2: !include securitySchemes/oauth2.raml
+
+securedBy: [oauth2]
+
+traits:
+  correlated:   !include traits/correlated.raml
+  rateLimited:  !include traits/rate-limited.raml
+  idempotent:   !include traits/idempotent.raml
+  standardErrors: !include traits/standard-errors.raml
+
+types:
+  Customer360:  !include dataTypes/customer-360.raml
+  ChurnRisk:    !include dataTypes/churn-risk.raml
+  AiInsight:    !include dataTypes/ai-insight.raml
+  Error:        !include dataTypes/error.raml
+
+/customers:
+  /{customerId}:
+    uriParameters:
+      customerId:
+        type: string
+        pattern: ^[A-Z]{3}-[0-9]{6}$
+        example: CRM-100005
+        description: CRM business key.
+    /360:
+      get:
+        displayName: Get Customer 360
+        description: |
+          Profile, orders, support history, loyalty standing, derived analytics
+          and churn risk in one call.
+
+          Returns 200 with `meta.partial = true` when a contributing system was
+          unavailable. Direct identifiers are masked unless the token carries
+          the `pii:read` scope.
+        is: [correlated, rateLimited, standardErrors]
+        securedBy: [oauth2: {scopes: [customer:read]}]
+        queryParameters:
+          includeOrders:  {type: boolean, required: false, default: true}
+          includeSupport: {type: boolean, required: false, default: true}
+          includeAi:
+            type: boolean
+            required: false
+            default: false
+            description: Opt in per request - generative calls are chargeable.
+          orderLimit:     {type: integer, required: false, default: 10,
+                           minimum: 1, maximum: 100}
+        responses:
+          200:
+            body:
+              application/json:
+                type: Customer360
+                example: !include examples/customer-360.json
+    /insights:
+      get:
+        displayName: Get customer insights
+        is: [correlated, rateLimited, standardErrors]
+        securedBy: [oauth2: {scopes: [insights:read]}]
+        queryParameters:
+          types:
+            type: string
+            required: false
+            default: SUMMARY,CHURN_EXPLANATION,NEXT_BEST_ACTION
+        responses:
+          200:
+            body:
+              application/json:
+                type: object
+                properties:
+                  customerId: string
+                  churnRisk?: ChurnRisk
+                  insights:
+                    properties:
+                      generated: AiInsight[]
+                      unavailable: object[]
+                  meta: common.ResponseMeta
+    /churn-risk:
+      get:
+        displayName: Get churn risk
+        description: |
+          Returns the stored score and the drivers that produced it. The drivers
+          are read from the warehouse, not regenerated and not inferred by a
+          model - which makes the number defensible when it is disputed.
+        is: [correlated, rateLimited, standardErrors]
+        securedBy: [oauth2: {scopes: [insights:read]}]
+        responses:
+          200:
+            body:
+              application/json:
+                type: ChurnRisk
+                example: !include examples/churn-risk.json
+    /ai-analysis:
+      post:
+        displayName: Request an AI analysis
+        description: |
+          Chargeable and audited. Send an `Idempotency-Key`.
+          `NEXT_BEST_ACTION` always returns `requiresHumanApproval: true`.
+        is: [correlated, rateLimited, idempotent, standardErrors]
+        securedBy: [oauth2: {scopes: [ai:invoke]}]
+        body:
+          application/json:
+            properties:
+              capability:
+                type: string
+                enum: [SUMMARY, CHURN_EXPLANATION, NEXT_BEST_ACTION, SENTIMENT, GROUNDED_QA]
+              question?:     {type: string, maxLength: 500}
+              forceRefresh?: {type: boolean, default: false}
+            example: {capability: NEXT_BEST_ACTION}
+        responses:
+          200:
+            body:
+              application/json:
+                type: AiInsight
+                example: !include examples/ai-insight.json
+          502:
+            description: Generation failed or the output failed grounding checks.
+            body:
+              application/json:
+                type: Error
+
+/cohorts:
+  /high-risk:
+    get:
+      displayName: High-risk cohort
+      is: [correlated, rateLimited, standardErrors]
+      securedBy: [oauth2: {scopes: [insights:read]}]
+      queryParameters:
+        limit: {type: integer, required: false, default: 25, minimum: 1, maximum: 200}
+      responses:
+        200:
+          body:
+            application/json:
+              properties:
+                data: object[]
+
+/governance:
+  /data-quality:
+    get:
+      displayName: Data quality scorecard
+      description: |
+        Exposed to consumers on purpose: a client that can see the platform's
+        data quality state can decide whether to trust a number today, rather
+        than discovering the problem in a board pack.
+      is: [correlated, standardErrors]
+      securedBy: [oauth2: {scopes: [insights:read]}]
+      responses:
+        200:
+          body:
+            application/json:
+              properties:
+                data: object[]
+
+/health:
+  get:
+    displayName: Health
+    securedBy: [null]
+    responses:
+      200:
+        body:
+          application/json:
+            properties:
+              status: string
+              service: string

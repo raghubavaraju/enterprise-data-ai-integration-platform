@@ -1,0 +1,150 @@
+openapi: 3.0.3
+info:
+  title: Snowflake Data System API
+  version: 1.0.0
+  description: |
+    System layer.  The only component in the estate permitted to query the
+    Snowflake analytical platform.
+
+    Design rules:
+
+    * It exposes **resources**, not SQL.  No caller can supply a query.  The
+      complete statement catalogue is `services/gateway/queries.py`, every
+      statement is parameterised, and adding one is a reviewable change.
+    * It reads **views**, never base tables, so a warehouse refactor is not an
+      API change.
+    * It holds the platform's own Snowflake credential (key-pair JWT, read-only
+      role).  Caller entitlements are enforced at the experience layer; the
+      warehouse only ever sees the platform identity.
+    * It talks to Snowflake over the **SQL API** rather than JDBC, so timeouts,
+      retries, circuit breaking and correlation-id propagation are handled by
+      the same platform machinery as every other HTTP dependency.
+servers:
+  - url: https://system.internal.acme-retail.example.com/snowflake/v1
+  - url: http://localhost:8090/api/v1/snowflake
+security:
+  - OAuth2ClientCredentials: [customer:read]
+paths:
+  /customers/{customerId}/360:
+    get:
+      tags: [customers]
+      operationId: getCustomer360Row
+      summary: One row from ANALYTICS.V_CUSTOMER_360_API
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer 360 row, canonical field names.
+          content: {application/json: {schema: {type: object, additionalProperties: true}}}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '502':
+          description: The warehouse rejected or failed the query.
+          content:
+            application/json:
+              schema: {$ref: '../fragments/error.oas.yaml#/components/schemas/Error'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /customers/{customerId}/orders:
+    get:
+      tags: [customers]
+      operationId: getCustomerOrders
+      summary: Orders for a customer
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Limit'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Offset'
+      responses:
+        '200':
+          description: Paged orders.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: {type: array, items: {type: object}}
+                  pagination:
+                    $ref: '../fragments/common.oas.yaml#/components/schemas/Pagination'
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /customers/{customerId}/cases:
+    get:
+      tags: [customers]
+      operationId: getCustomerCases
+      summary: Support cases for a customer
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Cases, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {data: {type: array, items: {type: object}}}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /customers/{customerId}/churn-risk:
+    get:
+      tags: [insights]
+      operationId: getChurnScore
+      summary: Latest stored churn score
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Churn score row.
+          content: {application/json: {schema: {type: object, additionalProperties: true}}}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /cohorts/high-risk:
+    get:
+      tags: [insights]
+      operationId: getHighRiskCohortRows
+      summary: High and critical risk customers by value
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Cohort rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {data: {type: array, items: {type: object}}}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /governance/data-quality:
+    get:
+      tags: [governance]
+      operationId: getDataQualityRows
+      summary: Latest data quality result per rule
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      responses:
+        '200':
+          description: Scorecard rows.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: {data: {type: array, items: {type: object}}}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /platform/freshness:
+    get:
+      tags: [operations]
+      operationId: getPlatformFreshness
+      summary: When the Customer 360 was last rebuilt, and how many rows it holds
+      responses:
+        '200':
+          description: Freshness.
+          content: {application/json: {schema: {type: object, additionalProperties: true}}}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'

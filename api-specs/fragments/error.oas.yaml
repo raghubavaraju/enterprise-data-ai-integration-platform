@@ -1,0 +1,98 @@
+# Canonical error object - referenced by every API in the platform.
+# One error shape across experience, process and system layers means a client
+# writes error handling once. Implementation: services/common/errors.py.
+openapi: 3.0.3
+info:
+  title: Shared error model
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    Error:
+      type: object
+      required: [errorCode, message, correlationId, timestamp, retryable]
+      properties:
+        errorCode:
+          type: string
+          description: >
+            Stable, machine-readable code in the form `DOMAIN:REASON`.
+            Clients branch on this, never on the message text.
+          example: PLATFORM:RESOURCE_NOT_FOUND
+        message:
+          type: string
+          description: Human-readable explanation. Never contains a stack trace,
+            a downstream error verbatim, or any customer data.
+          example: The requested resource does not exist.
+        correlationId:
+          type: string
+          description: Ties this response to every log line and warehouse query
+            produced while handling the request.
+          example: acme-6f1c9a2e-6d0f-4d0b-9b3f-1f2a0b7d4c11
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+          example: /api/v1/customers/CRM-100005/360
+        retryable:
+          type: boolean
+          description: Whether retrying the identical request could succeed.
+            Clients must not retry when this is false.
+        details:
+          type: array
+          description: Field-level detail for validation failures.
+          items:
+            type: object
+            additionalProperties: true
+  responses:
+    BadRequest:
+      description: The request failed validation.
+      headers:
+        x-correlation-id: {schema: {type: string}}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+          example:
+            errorCode: PLATFORM:VALIDATION_ERROR
+            message: The request failed validation.
+            correlationId: acme-6f1c9a2e-6d0f-4d0b-9b3f-1f2a0b7d4c11
+            timestamp: '2026-08-28T10:15:00Z'
+            path: /api/v1/customers/CRM-100005/ai-analysis
+            retryable: false
+            details: [{field: capability, issue: 'not a supported capability'}]
+    Unauthorized:
+      description: Missing, expired or invalid access token.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    Forbidden:
+      description: The token is valid but lacks the required scope.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    NotFound:
+      description: The resource does not exist.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    TooManyRequests:
+      description: Rate limit exceeded.
+      headers:
+        Retry-After: {schema: {type: integer}, description: Seconds to wait.}
+        X-RateLimit-Limit: {schema: {type: integer}}
+        X-RateLimit-Remaining: {schema: {type: integer}}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    ServiceUnavailable:
+      description: A downstream dependency is unavailable. Retryable.
+      headers:
+        Retry-After: {schema: {type: integer}}
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}
+    GatewayTimeout:
+      description: A downstream dependency did not respond within the timeout budget.
+      content:
+        application/json:
+          schema: {$ref: '#/components/schemas/Error'}

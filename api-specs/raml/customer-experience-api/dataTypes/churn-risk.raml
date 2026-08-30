@@ -1,0 +1,21 @@
+#%RAML 1.0 DataType
+type: object
+properties:
+  customerId?: string
+  churnProbability: {type: number, minimum: 0, maximum: 1}
+  riskBand: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+  model:
+    properties:
+      name: string
+      version: string
+      method: {type: string, enum: [RULE_BASED, ML, ENSEMBLE]}
+      featureSetVersion: string
+  drivers:
+    type: array
+    description: Stored contributions, highest first. Read, never recomputed on the fly.
+    items:
+      properties:
+        rank: integer
+        driver: string
+        contribution: number
+  scoreDate: date-only

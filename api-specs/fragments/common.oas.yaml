@@ -1,0 +1,97 @@
+# Shared parameters, headers and pagination.
+openapi: 3.0.3
+info: {title: Shared components, version: 1.0.0}
+paths: {}
+components:
+  parameters:
+    CorrelationId:
+      name: x-correlation-id
+      in: header
+      required: false
+      description: >
+        Supplied by the caller when it has its own trace id, otherwise minted by
+        the platform. Always echoed on the response. This is the single join key
+        across MuleSoft logs, the Snowflake QUERY_TAG and the AI audit table.
+      schema: {type: string, maxLength: 128}
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: >
+        Required in practice for any operation that costs money. A repeated key
+        within the TTL returns the first response instead of re-executing.
+      schema: {type: string, maxLength: 128}
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      description: CRM business key.
+      schema: {type: string, pattern: '^[A-Z]{3}-[0-9]{6}$', example: CRM-100005}
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: {type: integer, minimum: 1, maximum: 200, default: 20}
+    Offset:
+      name: offset
+      in: query
+      required: false
+      schema: {type: integer, minimum: 0, default: 0}
+  schemas:
+    Pagination:
+      type: object
+      required: [limit, offset, total, hasMore]
+      properties:
+        limit: {type: integer}
+        offset: {type: integer}
+        total: {type: integer}
+        hasMore:
+          type: boolean
+          description: >
+            Explicit rather than left for the client to infer from
+            offset + limit >= total, which is wrong the moment the underlying
+            collection changes between pages.
+    ResponseMeta:
+      type: object
+      description: >
+        Present on every successful experience-layer response. `partial` and
+        `degradedFields` are what let a client distinguish "this customer has no
+        orders" from "the order system was unavailable" - a distinction that has
+        to be in the contract, because it cannot be added later without breaking
+        every consumer that assumed silence meant absence.
+      required: [correlationId, partial]
+      properties:
+        correlationId: {type: string}
+        partial: {type: boolean}
+        degradedFields:
+          type: array
+          items: {type: string}
+          example: [aiInsights]
+        dataCompletenessScore:
+          type: number
+          format: float
+          description: Percentage of profile attributes populated (0-100).
+        contributingSources:
+          type: array
+          items: {type: string}
+          example: [CRM, OMS, SUPPORT, LOYALTY]
+        asOf:
+          type: string
+          format: date-time
+          description: When the underlying Customer 360 row was last rebuilt.
+        elapsedMs: {type: number, format: float}
+  securitySchemes:
+    OAuth2ClientCredentials:
+      type: oauth2
+      description: >
+        Machine-to-machine only. There is no authorization-code flow: every
+        consumer of this platform is a system, and end-user identity is carried
+        in the calling application's own session, not in this token.
+      flows:
+        clientCredentials:
+          tokenUrl: https://auth.acme-retail.example.com/oauth/token
+          scopes:
+            customer:read: Read customer profile and Customer 360 data
+            insights:read: Read derived analytics and churn scores
+            ai:invoke: Trigger a generative AI analysis (chargeable, audited)
+            pii:read: Receive unmasked direct identifiers

@@ -1,0 +1,19 @@
+#%RAML 1.0 Trait
+usage: |
+  The canonical error responses. One error shape across every API in the estate
+  means a consumer writes error handling once.
+responses:
+  400:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  401:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  403:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  404:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  500:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  503:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}
+  504:
+    body: {application/json: {type: !include ../dataTypes/error.raml}}

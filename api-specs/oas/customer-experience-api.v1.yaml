@@ -1,0 +1,625 @@
+openapi: 3.0.3
+info:
+  title: Acme Customer Experience API
+  version: 1.0.0
+  description: |
+    Client-facing API for the Acme Retail service-desk application.
+
+    **Layer:** Experience.  This API is shaped for one consumer.  A second
+    consumer with different needs gets its own experience API over the same
+    process APIs instead of query parameters bolted onto this one - that is the
+    whole reason the layer exists.
+
+    **What it does not do:** it does not orchestrate, and it does not touch a
+    source system or the warehouse.  It calls the Customer 360 Process API,
+    applies entitlement-based masking, enforces the client SLA and shapes the
+    payload.
+
+    **Degraded responses.** Assembling a Customer 360 spans five systems.  When
+    one is unavailable this API returns HTTP 200 with the data it has, and
+    `meta.partial = true` with the missing parts named in `meta.degradedFields`.
+    Failing the whole call because the loyalty platform is down would leave an
+    agent with a customer on the phone and nothing on screen.
+  contact: {name: Acme Integration Platform Team, email: integration@acme-retail.example.com}
+  license: {name: MIT}
+
+servers:
+  - url: https://api.acme-retail.example.com/experience/v1
+    description: Production (illustrative)
+  - url: https://api-uat.acme-retail.example.com/experience/v1
+    description: UAT (illustrative)
+  - url: http://localhost:8080/api/v1
+    description: Local
+
+security:
+  - OAuth2ClientCredentials: [customer:read]
+
+tags:
+  - name: customers
+    description: Unified customer view
+  - name: insights
+    description: Analytics and AI-generated insight
+  - name: governance
+    description: Data quality transparency
+  - name: operations
+    description: Health
+
+paths:
+  /customers/{customerId}/360:
+    get:
+      tags: [customers]
+      operationId: getCustomer360
+      summary: Unified customer view
+      description: |
+        Profile, orders, support history, loyalty standing, derived analytics
+        and churn risk in one call.
+
+        Direct identifiers are masked unless the token carries `pii:read`.  The
+        decision is made from the token, never from a request parameter.
+      security: [{OAuth2ClientCredentials: [customer:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - name: includeOrders
+          in: query
+          schema: {type: boolean, default: true}
+        - name: includeSupport
+          in: query
+          schema: {type: boolean, default: true}
+        - name: includeAi
+          in: query
+          description: >
+            Off by default.  Generative calls are slow and chargeable, so a
+            consumer opts in per request rather than paying for insight it will
+            not display.
+          schema: {type: boolean, default: false}
+        - name: orderLimit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 100, default: 10}
+      responses:
+        '200':
+          description: The customer view, possibly partial.
+          headers:
+            x-correlation-id: {schema: {type: string}}
+            x-response-time-ms: {schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Customer360'}
+              examples:
+                complete:
+                  summary: All sources contributed
+                  value:
+                    customerId: CRM-100005
+                    profile:
+                      fullName: Sofia C***
+                      email: s*********@example.com
+                      phone: '***-***-1005'
+                      birthDate: '1960-**-**'
+                      segment: PREMIUM
+                      status: ACTIVE
+                      preferredChannel: WEB
+                      marketingOptIn: false
+                      customerSince: '2024-12-07'
+                      tenureDays: 629
+                      location: {city: Atlanta, state: GA, country: US}
+                      _masked: true
+                    orders:
+                      - orderId: ORD-200026
+                        orderDate: '2026-06-06'
+                        orderStatus: COMPLETED
+                        channel: WEB
+                        currencyCode: USD
+                        orderAmount: 199.75
+                        discountAmount: 0
+                        shippingAmount: 5.05
+                        netAmount: 199.75
+                        lineCount: 1
+                        totalUnits: 5
+                    support:
+                      - caseId: CAS-300010
+                        caseType: DELIVERY_ISSUE
+                        priority: HIGH
+                        status: OPEN
+                        openedAt: '2025-10-29T00:00:00'
+                        csatScore: null
+                        isSlaBreached: true
+                    loyalty: {tier: BRONZE, status: ACTIVE, pointsBalance: 14085,
+                              enrolledAt: '2021-07-07'}
+                    analytics:
+                      totalOrders: 15
+                      totalNetRevenue: 3070.26
+                      avgOrderValue: 219.30
+                      orderFrequencyPerYear: 20.5056
+                      lastOrderDate: '2026-06-06'
+                      daysSinceLastOrder: 83
+                      revenueLast365d: 3070.26
+                      returnRate: 0.0
+                      totalCases: 4
+                      openCases: 1
+                      avgCsat: 3.33
+                      topCaseType: DELIVERY_ISSUE
+                      engagementScore: 63.67
+                      customerLifetimeValue: 3070.26
+                      predictedClv12m: 2703.52
+                      valueTier: HIGH
+                    churnRisk:
+                      churnProbability: 0.3988
+                      riskBand: MEDIUM
+                      model: {name: acme-churn-baseline, version: v1.2.0,
+                              method: RULE_BASED, featureSetVersion: v1.2.0}
+                      drivers:
+                        - {rank: 1, driver: DECLINING_ORDER_TREND, contribution: 0.1563}
+                        - {rank: 2, driver: PURCHASE_RECENCY, contribution: 0.1038}
+                        - {rank: 3, driver: LOYALTY_INACTIVITY, contribution: 0.08}
+                      scoreDate: '2026-08-28'
+                    aiInsights: null
+                    meta:
+                      correlationId: acme-6f1c9a2e-6d0f-4d0b-9b3f-1f2a0b7d4c11
+                      partial: false
+                      degradedFields: []
+                      dataCompletenessScore: 100
+                      contributingSources: [CRM, OMS, SUPPORT, LOYALTY, ENGAGEMENT]
+                      asOf: '2026-08-28T04:15:02Z'
+                      elapsedMs: 231.4
+                degraded:
+                  summary: Loyalty platform unavailable - HTTP 200, explicitly partial
+                  value:
+                    customerId: CRM-100005
+                    profile: {fullName: Sofia C***, segment: PREMIUM, status: ACTIVE}
+                    orders: []
+                    support: []
+                    loyalty: null
+                    analytics: {totalOrders: 15, totalNetRevenue: 3070.26}
+                    churnRisk: null
+                    aiInsights: null
+                    meta:
+                      correlationId: acme-6f1c9a2e-6d0f-4d0b-9b3f-1f2a0b7d4c11
+                      partial: true
+                      degradedFields: [loyalty, churnRisk]
+                      dataCompletenessScore: 75
+                      contributingSources: [CRM, OMS, SUPPORT]
+                      asOf: '2026-08-28T04:15:02Z'
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '429': {$ref: '../fragments/error.oas.yaml#/components/responses/TooManyRequests'}
+        '503': {$ref: '../fragments/error.oas.yaml#/components/responses/ServiceUnavailable'}
+        '504': {$ref: '../fragments/error.oas.yaml#/components/responses/GatewayTimeout'}
+
+  /customers/{customerId}/insights:
+    get:
+      tags: [insights]
+      operationId: getCustomerInsights
+      summary: Churn risk and AI-generated insight
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - name: types
+          in: query
+          description: Comma-separated capabilities to generate.
+          schema:
+            type: string
+            default: SUMMARY,CHURN_EXPLANATION,NEXT_BEST_ACTION
+      responses:
+        '200':
+          description: Insight bundle. Individual capabilities may be unavailable.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/InsightBundle'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '429': {$ref: '../fragments/error.oas.yaml#/components/responses/TooManyRequests'}
+
+  /customers/{customerId}/churn-risk:
+    get:
+      tags: [insights]
+      operationId: getChurnRisk
+      summary: Churn score with its stored drivers
+      description: >
+        Returns the stored score and the drivers that produced it.  The drivers
+        are read, not recomputed and not inferred by a model - which is what
+        makes the number defensible when a business user disputes it.
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: Churn assessment.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/ChurnRisk'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+
+  /customers/{customerId}/ai-analysis:
+    post:
+      tags: [insights]
+      operationId: requestAiAnalysis
+      summary: Trigger a grounded AI analysis
+      description: |
+        Chargeable and audited.  Send `Idempotency-Key` - a client that retries
+        on timeout, which every well-behaved client does, would otherwise be
+        billed twice for the same answer.
+
+        `NEXT_BEST_ACTION` always returns `requiresHumanApproval: true`.  The
+        platform recommends; a person decides.
+      security: [{OAuth2ClientCredentials: [ai:invoke]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/AiAnalysisRequest'}
+            examples:
+              summary: {value: {capability: SUMMARY}}
+              nextBestAction: {value: {capability: NEXT_BEST_ACTION}}
+              groundedQuestion:
+                value:
+                  capability: GROUNDED_QA
+                  question: 'Is this customer eligible for a win-back offer?'
+      responses:
+        '200':
+          description: The generated insight, with provenance and review status.
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/AiInsight'}
+              example:
+                customerId: CRM-100046
+                type: NEXT_BEST_ACTION
+                text: '{"action": "RETENTION_OFFER_15_PCT", "priority": "HIGH",
+                        "justification": "churn risk is CRITICAL and there is no recorded
+                        purchase activity, which meets the KB-009 win-back threshold"}'
+                structured:
+                  action: RETENTION_OFFER_15_PCT
+                  priority: HIGH
+                  justification: churn risk is CRITICAL and there is no recorded purchase
+                    activity, which meets the KB-009 win-back threshold
+                confidence: 0.923
+                requiresHumanApproval: true
+                reviewStatus: PENDING_REVIEW
+                generatedBy: {provider: cortex, model: llama3.1-70b}
+                sources: [KB-009]
+                generatedAt: '2026-08-28T10:15:00Z'
+                cached: false
+                disclaimer: AI-generated from Acme's own customer data. Verify before
+                  acting on it.
+                meta: {correlationId: acme-6f1c9a2e, idempotentReplay: false}
+        '400': {$ref: '../fragments/error.oas.yaml#/components/responses/BadRequest'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '429': {$ref: '../fragments/error.oas.yaml#/components/responses/TooManyRequests'}
+        '502':
+          description: The AI provider failed or the output failed grounding checks.
+          content:
+            application/json:
+              schema: {$ref: '../fragments/error.oas.yaml#/components/schemas/Error'}
+
+  /cohorts/high-risk:
+    get:
+      tags: [insights]
+      operationId: getHighRiskCohort
+      summary: Highest-value customers at high or critical churn risk
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Cohort ordered by customer lifetime value, descending.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/CohortMember'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+
+  /governance/data-quality:
+    get:
+      tags: [governance]
+      operationId: getDataQualityScorecard
+      summary: Current data quality scorecard
+      description: >
+        Exposed through the API intentionally.  A consumer that can see the data
+        quality state of the platform it is reading can decide for itself
+        whether to trust a number today - which is a far better outcome than
+        discovering the problem in a board pack.
+      security: [{OAuth2ClientCredentials: [insights:read]}]
+      responses:
+        '200':
+          description: One entry per active rule.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: {$ref: '#/components/schemas/DataQualityResult'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+
+  /health:
+    get:
+      tags: [operations]
+      operationId: getHealth
+      summary: Liveness and dependency state
+      security: []
+      responses:
+        '200':
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, example: UP}
+                  service: {type: string}
+                  circuitBreakers:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        dependency: {type: string}
+                        state: {type: string, enum: [CLOSED, OPEN, HALF_OPEN]}
+                        failures: {type: integer}
+
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'
+  schemas:
+    Customer360:
+      type: object
+      required: [customerId, profile, analytics, meta]
+      properties:
+        customerId: {type: string, example: CRM-100005}
+        profile: {$ref: '#/components/schemas/Profile'}
+        orders:
+          type: array
+          items: {$ref: '#/components/schemas/OrderSummary'}
+        support:
+          type: array
+          items: {$ref: '#/components/schemas/SupportCase'}
+        loyalty:
+          allOf: [{$ref: '#/components/schemas/Loyalty'}]
+          nullable: true
+        analytics: {$ref: '#/components/schemas/Analytics'}
+        churnRisk:
+          allOf: [{$ref: '#/components/schemas/ChurnRisk'}]
+          nullable: true
+        aiInsights:
+          allOf: [{$ref: '#/components/schemas/InsightBundleBody'}]
+          nullable: true
+        meta: {$ref: '../fragments/common.oas.yaml#/components/schemas/ResponseMeta'}
+
+    Profile:
+      type: object
+      properties:
+        fullName: {type: string}
+        email: {type: string}
+        phone: {type: string}
+        birthDate: {type: string}
+        segment: {type: string, enum: [CONSUMER, SMALL_BUSINESS, PREMIUM]}
+        status: {type: string, enum: [ACTIVE, INACTIVE, CLOSED]}
+        preferredChannel: {type: string}
+        marketingOptIn: {type: boolean}
+        customerSince: {type: string, format: date}
+        tenureDays: {type: integer}
+        location:
+          type: object
+          properties:
+            city: {type: string}
+            state: {type: string}
+            country: {type: string}
+        _masked:
+          type: boolean
+          description: True when direct identifiers were masked for this caller.
+        _maskedFields:
+          type: array
+          items: {type: string}
+
+    OrderSummary:
+      type: object
+      properties:
+        orderId: {type: string}
+        orderDate: {type: string, format: date}
+        orderStatus: {type: string,
+                      enum: [COMPLETED, SHIPPED, CANCELLED, RETURNED, PENDING]}
+        channel: {type: string}
+        currencyCode: {type: string}
+        orderAmount: {type: number}
+        discountAmount: {type: number}
+        shippingAmount: {type: number}
+        netAmount:
+          type: number
+          description: Amount less discount. This is the figure used for revenue
+            everywhere in the platform.
+        lineCount: {type: integer}
+        totalUnits: {type: integer}
+
+    SupportCase:
+      type: object
+      properties:
+        caseId: {type: string}
+        caseType: {type: string}
+        priority: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+        subject: {type: string}
+        status: {type: string, enum: [OPEN, RESOLVED]}
+        channel: {type: string}
+        openedAt: {type: string, format: date-time}
+        resolvedAt: {type: string, format: date-time, nullable: true}
+        resolutionHours: {type: number, nullable: true}
+        csatScore: {type: integer, nullable: true, minimum: 1, maximum: 5}
+        reopenCount: {type: integer}
+        isSlaBreached: {type: boolean}
+
+    Loyalty:
+      type: object
+      properties:
+        tier: {type: string, enum: [NONE, BRONZE, SILVER, GOLD, PLATINUM]}
+        status: {type: string, enum: [ACTIVE, SUSPENDED, NOT_ENROLLED]}
+        pointsBalance: {type: integer}
+        enrolledAt: {type: string, format: date, nullable: true}
+
+    Analytics:
+      type: object
+      properties:
+        totalOrders: {type: integer}
+        totalNetRevenue: {type: number}
+        avgOrderValue: {type: number}
+        orderFrequencyPerYear: {type: number}
+        lastOrderDate: {type: string, format: date, nullable: true}
+        daysSinceLastOrder: {type: integer, nullable: true}
+        revenueLast365d: {type: number}
+        returnRate: {type: number}
+        totalCases: {type: integer}
+        openCases: {type: integer}
+        avgCsat: {type: number, nullable: true}
+        topCaseType: {type: string, nullable: true}
+        engagementScore:
+          type: number
+          description: 0-100, deterministic. Weights documented in docs/data-architecture.md.
+        customerLifetimeValue:
+          type: number
+          description: Realised net revenue to date. NOT a prediction.
+        predictedClv12m:
+          type: number
+          description: Projected next-12-month value. Always labelled as predicted.
+        valueTier: {type: string, enum: [HIGH, MEDIUM, LOW]}
+
+    ChurnRisk:
+      type: object
+      properties:
+        customerId: {type: string}
+        churnProbability: {type: number, minimum: 0, maximum: 1}
+        riskBand: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+        model:
+          type: object
+          properties:
+            name: {type: string}
+            version: {type: string}
+            method: {type: string, enum: [RULE_BASED, ML, ENSEMBLE]}
+            featureSetVersion: {type: string}
+        drivers:
+          type: array
+          description: Stored contributions, highest first. Not regenerated on read.
+          items:
+            type: object
+            properties:
+              rank: {type: integer}
+              driver: {type: string}
+              contribution: {type: number}
+        scoreDate: {type: string, format: date}
+
+    AiAnalysisRequest:
+      type: object
+      required: [capability]
+      properties:
+        capability:
+          type: string
+          enum: [SUMMARY, CHURN_EXPLANATION, NEXT_BEST_ACTION, SENTIMENT, GROUNDED_QA]
+        question:
+          type: string
+          maxLength: 500
+          description: Required for GROUNDED_QA, ignored otherwise.
+        forceRefresh:
+          type: boolean
+          default: false
+          description: Bypass the cached insight and pay for a fresh generation.
+
+    AiInsight:
+      type: object
+      properties:
+        customerId: {type: string}
+        type: {type: string}
+        text: {type: string}
+        structured:
+          type: object
+          nullable: true
+          additionalProperties: true
+        confidence:
+          type: number
+          description: >
+            Derived from measurable signals - output groundedness, input
+            completeness, retrieval quality, guardrail outcome. It is not the
+            model's own assessment of itself.
+        requiresHumanApproval: {type: boolean}
+        reviewStatus:
+          type: string
+          enum: [AUTO_APPROVED, PENDING_REVIEW, APPROVED, REJECTED]
+        generatedBy:
+          type: object
+          properties:
+            provider: {type: string}
+            model: {type: string}
+        sources:
+          type: array
+          items: {type: string}
+          description: Knowledge-base article ids used to ground the answer.
+        generatedAt: {type: string, format: date-time}
+        cached: {type: boolean}
+        disclaimer:
+          type: string
+          description: Must be displayed verbatim alongside any generated text.
+
+    InsightBundleBody:
+      type: object
+      properties:
+        generated:
+          type: array
+          items: {$ref: '#/components/schemas/AiInsight'}
+        unavailable:
+          type: array
+          items:
+            type: object
+            properties:
+              capability: {type: string}
+              reason: {type: string}
+
+    InsightBundle:
+      type: object
+      properties:
+        customerId: {type: string}
+        churnRisk:
+          allOf: [{$ref: '#/components/schemas/ChurnRisk'}]
+          nullable: true
+        insights: {$ref: '#/components/schemas/InsightBundleBody'}
+        meta: {$ref: '../fragments/common.oas.yaml#/components/schemas/ResponseMeta'}
+
+    CohortMember:
+      type: object
+      properties:
+        customerId: {type: string}
+        churnProbability: {type: number}
+        churnRiskBand: {type: string}
+        valueTier: {type: string}
+        customerLifetimeValue: {type: number}
+        daysSinceLastOrder: {type: integer, nullable: true}
+        loyaltyTier: {type: string}
+
+    DataQualityResult:
+      type: object
+      properties:
+        ruleId: {type: string, example: DQ-O-002}
+        ruleName: {type: string}
+        dimension:
+          type: string
+          enum: [COMPLETENESS, VALIDITY, UNIQUENESS, CONSISTENCY, ACCURACY, TIMELINESS]
+        severity: {type: string, enum: [BLOCKING, WARNING, INFO]}
+        targetTable: {type: string}
+        rowsEvaluated: {type: integer}
+        rowsFailed: {type: integer}
+        failPct: {type: number}
+        status: {type: string, enum: [PASS, WARN, FAIL]}
+        executedAt: {type: string, format: date-time}

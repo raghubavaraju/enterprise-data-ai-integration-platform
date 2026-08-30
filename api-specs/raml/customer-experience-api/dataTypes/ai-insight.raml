@@ -1,0 +1,28 @@
+#%RAML 1.0 DataType
+type: object
+description: |
+  Generated content plus the provenance a consumer needs to decide whether to
+  display it. The full provenance - grounding snapshot, prompt version, token
+  counts - stays in the warehouse.
+properties:
+  customerId?: string
+  type: {type: string, enum: [SUMMARY, CHURN_EXPLANATION, NEXT_BEST_ACTION, SENTIMENT, GROUNDED_QA]}
+  text: string
+  structured?: object
+  confidence:
+    type: number
+    description: |
+      Derived from measurable signals - output groundedness, input completeness,
+      retrieval quality, guardrail outcome. Not the model's opinion of itself.
+  requiresHumanApproval: boolean
+  reviewStatus: {type: string, enum: [AUTO_APPROVED, PENDING_REVIEW, APPROVED, REJECTED]}
+  generatedBy:
+    properties:
+      provider: string
+      model: string
+  sources?: string[]
+  generatedAt: datetime
+  cached: boolean
+  disclaimer:
+    type: string
+    description: Must be displayed verbatim alongside any generated text.
