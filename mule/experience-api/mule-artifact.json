@@ -1,0 +1,11 @@
+{
+  "minMuleVersion": "4.6.0",
+  "configs": [
+    "customer-experience-api.xml",
+    "ai-insights-api.xml",
+    "global-config.xml",
+    "global-error-handler.xml"
+  ],
+  "secureProperties": ["secure.key"],
+  "redeploymentEnabled": true
+}

@@ -1,0 +1,32 @@
+{
+  "policyTemplateId": "jwt-validation",
+  "policyVersion": "1.4.0",
+  "configurationData": {
+    "signingMethod": "rsa",
+    "signingKeyLength": 256,
+    "jwtKeyOrigin": "jwks",
+    "jwksUrl": "https://auth.acme-retail.example.com/.well-known/jwks.json",
+    "jwksServiceTimeToLive": 60,
+    "jwtOrigin": "httpBearerAuthenticationHeader",
+    "skipClientIdValidation": false,
+    "clientIdExpression": "#[vars.claimSet.client_id]",
+    "validateAudClaim": true,
+    "mandatoryAudClaim": true,
+    "supportedAudiences": "https://api.acme-retail.example.com",
+    "validateExpClaim": true,
+    "mandatoryExpClaim": true,
+    "validateNbfClaim": true,
+    "validateCustomClaim": true,
+    "mandatoryCustomClaimValidations": [
+      {
+        "key": "iss",
+        "value": "#[attributes.claimSet.iss == 'https://auth.acme-retail.example.com']"
+      },
+      {
+        "key": "scope",
+        "value": "#[(attributes.claimSet.scope default '') contains 'customer:read']"
+      }
+    ]
+  },
+  "notes": "Applied to every experience API instance. RS256 with JWKS rotation - a shared HMAC secret would have to be distributed to every application, which makes rotation a coordinated outage."
+}

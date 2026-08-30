@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:os="http://www.mulesoft.org/schema/mule/os"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/os
+        http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+    <!--
+      ==========================================================================
+      Customer Intelligence Process API  (process layer)
+      ==========================================================================
+      Owns everything about invoking the AI capability on behalf of an experience
+      API:
+
+        * idempotency, enforced HERE because this is the boundary where a
+          repeated call costs money;
+        * the no-automatic-retry rule for generative calls;
+        * merging the deterministic churn score with generated narrative, so
+          that the score is always available even when the narrative is not.
+
+      A separate application from the Customer 360 Process API because its cost
+      and failure profile is different. Bundling them would mean a model outage
+      degrading a profile lookup, and a spike in profile lookups fanning out to
+      a paid provider.
+    -->
+
+    <http:request-config name="ai-service-request-config" responseTimeout="${aiService.timeoutMs}">
+        <http:request-connection host="${aiService.host}" port="${aiService.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:request-config>
+
+    <http:request-config name="snowflake-api-for-intelligence"
+                         responseTimeout="${snowflakeApi.timeoutMs}">
+        <http:request-connection host="${snowflakeApi.host}" port="${snowflakeApi.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:request-config>
+
+    <!-- ===================================================================
+         POST /customers/{customerId}/ai-analysis
+         =================================================================== -->
+    <flow name="post:\customers\(customerId)\ai-analysis:application\json:customer-intelligence-process-api-config">
+
+        <set-variable variableName="idempotencyKey"
+                      value="#[attributes.headers['idempotency-key'] default null]" />
+        <set-variable variableName="analysisRequest" value="#[payload]" />
+
+        <choice doc:name="Idempotent replay?">
+            <when expression="#[vars.idempotencyKey != null]">
+                <os:retrieve key="#[vars.idempotencyKey]" objectStore="idempotency-store"
+                             target="cached" doc:name="Look up key">
+                    <os:default-value><![CDATA[#[null]]]></os:default-value>
+                </os:retrieve>
+            </when>
+            <otherwise>
+                <set-variable variableName="cached" value="#[null]" />
+            </otherwise>
+        </choice>
+
+        <choice doc:name="Replay or generate">
+            <when expression="#[vars.cached != null]">
+                <ee:transform doc:name="Return stored response">
+                    <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.cached ++ { idempotentReplay: true }]]></ee:set-payload></ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <http:request method="POST" config-ref="ai-service-request-config"
+                              path="/api/v1/customers/{customerId}/analysis"
+                              doc:name="AI service - generate">
+                    <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+                    <http:body><![CDATA[#[vars.analysisRequest]]]></http:body>
+                    <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                    <!--
+                      No automatic retry. A generative call is not idempotent
+                      from a cost perspective, and a slow response is nearly
+                      always a slow model and not a lost request. Retrying
+                      here would double the bill and, on a busy day, help push
+                      the provider over its own limits.
+                    -->
+                    <reconnect frequency="0" count="0" />
+                    <error-mapping sourceType="HTTP:CONNECTIVITY"
+                                   targetType="ACME:AI_SERVICE_ERROR" />
+                    <error-mapping sourceType="HTTP:TIMEOUT"
+                                   targetType="ACME:AI_SERVICE_ERROR" />
+                    <error-mapping sourceType="HTTP:BAD_GATEWAY"
+                                   targetType="ACME:AI_SERVICE_ERROR" />
+                </http:request>
+
+                <choice doc:name="Store idempotency key">
+                    <when expression="#[vars.idempotencyKey != null]">
+                        <os:store key="#[vars.idempotencyKey]" objectStore="idempotency-store">
+                            <os:value><![CDATA[#[payload]]]></os:value>
+                        </os:store>
+                    </when>
+                </choice>
+
+                <logger level="INFO" category="acme.process.intelligence"
+                        message='#["ai_analysis capability=" ++ (vars.analysisRequest.capability default "")
+                                  ++ " customerId=" ++ attributes.uriParams.customerId
+                                  ++ " confidence=" ++ (payload.quality.confidence default 0)
+                                  ++ " review=" ++ (payload.review.status default "")
+                                  ++ " tokensIn=" ++ (payload.usage.inputTokens default 0)
+                                  ++ " tokensOut=" ++ (payload.usage.outputTokens default 0)
+                                  ++ " correlationId=" ++ correlationId]' />
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/insights
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\insights:customer-intelligence-process-api-config">
+        <set-variable variableName="degradedFields" value="#[[]]" />
+
+        <!--
+          Score and narrative are fetched independently and degrade
+          independently. The deterministic score is the more valuable of the two
+          - it drives the retention workflow - so it must never be withheld
+          because the model was unavailable.
+        -->
+        <try>
+            <http:request method="GET" config-ref="snowflake-api-for-intelligence"
+                          path="/api/v1/snowflake/customers/{customerId}/churn-risk"
+                          target="churn" doc:name="Churn score">
+                <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+                <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            </http:request>
+            <error-handler>
+                <on-error-continue type="HTTP:NOT_FOUND" logException="false">
+                    <set-variable variableName="churn" value="#[null]" />
+                </on-error-continue>
+                <on-error-continue type="ANY" logException="true">
+                    <set-variable variableName="degradedFields"
+                                  value="#[vars.degradedFields + {
+                                      field: 'churnRisk', dependency: 'snowflake',
+                                      errorCode: error.errorType.identifier,
+                                      reason: error.description default 'unavailable'}]" />
+                    <set-variable variableName="churn" value="#[null]" />
+                </on-error-continue>
+            </error-handler>
+        </try>
+
+        <try>
+            <http:request method="GET" config-ref="ai-service-request-config"
+                          path="/api/v1/customers/{customerId}/insights"
+                          target="aiInsights" doc:name="AI service - insights">
+                <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+                <http:query-params><![CDATA[#[{
+                    types: attributes.queryParams.types default "SUMMARY,CHURN_EXPLANATION,NEXT_BEST_ACTION"
+                }]]]></http:query-params>
+                <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                <reconnect frequency="0" count="0" />
+            </http:request>
+            <error-handler>
+                <on-error-continue type="ANY" logException="true">
+                    <set-variable variableName="degradedFields"
+                                  value="#[vars.degradedFields + {
+                                      field: 'aiInsights', dependency: 'ai-service',
+                                      errorCode: error.errorType.identifier,
+                                      reason: error.description default 'unavailable'}]" />
+                    <set-variable variableName="aiInsights" value="#[null]" />
+                </on-error-continue>
+            </error-handler>
+        </try>
+
+        <ee:transform doc:name="Assemble intelligence bundle">
+            <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json skipNullOn="everywhere"
+---
+{
+    customerId: attributes.uriParams.customerId,
+    churnRisk: if (vars.churn == null) null else {
+        churnProbability: vars.churn.CHURN_PROBABILITY,
+        riskBand:         vars.churn.CHURN_RISK_BAND,
+        model: {
+            name:              vars.churn.MODEL_NAME,
+            version:           vars.churn.MODEL_VERSION,
+            method:            vars.churn.SCORING_METHOD,
+            featureSetVersion: vars.churn.FEATURE_SET_VERSION
+        },
+        /* Drivers are read from the warehouse in rank order. They are stored
+           when the score is computed exactly so that the explanation shown to
+           a business user months later is the one that produced the number. */
+        drivers: [1, 2, 3]
+            map (n) -> {
+                rank: n,
+                driver: vars.churn["TOP_DRIVER_" ++ n],
+                contribution: vars.churn["TOP_DRIVER_" ++ n ++ "_CONTRIB"]
+            }
+            filter ($.driver != null),
+        scoreDate: vars.churn.SCORE_DATE
+    },
+    aiInsights: vars.aiInsights,
+    partial: sizeOf(vars.degradedFields) > 0,
+    degradedFields: vars.degradedFields,
+    correlationId: correlationId
+}]]></ee:set-payload></ee:message>
+        </ee:transform>
+    </flow>
+</mule>

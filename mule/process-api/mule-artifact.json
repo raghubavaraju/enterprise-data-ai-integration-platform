@@ -1,0 +1,11 @@
+{
+  "minMuleVersion": "4.6.0",
+  "configs": [
+    "customer-360-process-api.xml",
+    "customer-intelligence-process-api.xml",
+    "global-config.xml",
+    "global-error-handler.xml"
+  ],
+  "secureProperties": ["secure.key"],
+  "redeploymentEnabled": true
+}

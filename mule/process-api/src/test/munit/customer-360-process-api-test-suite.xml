@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit
+        http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools
+        http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      MUnit suite - Customer 360 Process API
+      ==========================================================================
+      The degradation policy is the behaviour worth testing here, because it is
+      the behaviour that only shows up on a bad day.  These cases prove that a
+      partial outage produces a usable response instead of a 500, and that
+      absence and failure are reported differently.
+    -->
+
+    <munit:config name="customer-360-process-api-test-suite.xml" />
+
+    <!-- =================================================================== -->
+    <munit:test name="assembles-full-customer-360-when-all-sources-are-healthy">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake System API - Customer 360" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-customer-360.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Orders" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-orders.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Support cases" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-cases.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Churn score" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-churn-risk.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: 'CRM-100005'},
+                    queryParams: {orderLimit: 3, includeAi: false},
+                    headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-360-process-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.partial]"
+                                     is="#[MunitTools::equalTo(false)]" />
+            <munit-tools:assert-that expression="#[sizeOf(payload.degradedFields)]"
+                                     is="#[MunitTools::equalTo(0)]" />
+            <munit-tools:assert-that expression="#[payload.analytics.totalOrders]"
+                                     is="#[MunitTools::notNullValue()]" />
+            <munit-tools:assert-that expression="#[sizeOf(payload.churnRisk.drivers)]"
+                                     is="#[MunitTools::equalTo(3)]"
+                                     message="Three stored drivers must be surfaced." />
+            <!-- Realised and predicted value must remain distinct fields. -->
+            <munit-tools:assert-that expression="#[payload.analytics.customerLifetimeValue]"
+                                     is="#[MunitTools::notNullValue()]" />
+            <munit-tools:assert-that expression="#[payload.analytics.predictedClv12m]"
+                                     is="#[MunitTools::notNullValue()]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="order-system-failure-degrades-instead-of-failing"
+                description="One dependency down must not take the whole response down.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake System API - Customer 360" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-customer-360.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Orders" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:SERVICE_UNAVAILABLE" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Support cases" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-cases.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Churn score" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-churn-risk.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: 'CRM-100005'}, queryParams: {}, headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-360-process-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.partial]"
+                                     is="#[MunitTools::equalTo(true)]" />
+            <munit-tools:assert-that expression="#[payload.degradedFields[0].field]"
+                                     is="#[MunitTools::equalTo('orders')]" />
+            <munit-tools:assert-that expression="#[payload.orders]"
+                                     is="#[MunitTools::equalTo([])]"
+                                     message="A failed dependency yields an empty list, never a null hole." />
+            <!-- Everything that did work must still be present. -->
+            <munit-tools:assert-that expression="#[payload.profile.segment]"
+                                     is="#[MunitTools::notNullValue()]" />
+            <munit-tools:assert-that expression="#[payload.churnRisk]"
+                                     is="#[MunitTools::notNullValue()]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="missing-churn-score-is-absence-not-degradation"
+                description="A 404 on a sub-resource is a fact, not an outage.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake System API - Customer 360" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-customer-360.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Orders" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-orders.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Support cases" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-cases.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="Churn score" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:NOT_FOUND" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: 'CRM-100005'}, queryParams: {}, headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-360-process-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.churnRisk]"
+                                     is="#[MunitTools::nullValue()]" />
+            <!-- The important assertion: "not scored yet" must NOT be reported
+                 as degradation, or the partial flag becomes noise that
+                 operations learns to ignore. -->
+            <munit-tools:assert-that expression="#[payload.partial]"
+                                     is="#[MunitTools::equalTo(false)]"
+                                     message="An absent score is not an outage." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="core-profile-failure-propagates"
+                expectedErrorType="HTTP:SERVICE_UNAVAILABLE"
+                description="The one hard dependency must fail loudly, not degrade to an empty customer.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake System API - Customer 360" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:SERVICE_UNAVAILABLE" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: 'CRM-100005'}, queryParams: {}, headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-360-process-api-config" />
+        </munit:execution>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="ai-is-not-called-unless-requested"
+                description="Generative calls cost money; they are opt-in per request.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake System API - Customer 360" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/system-customer-360.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="AI service" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[{insights: []}]" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: 'CRM-100005'},
+                    queryParams: {includeAi: false}, headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-360-process-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:verify-call processor="http:request" times="0">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="AI service" />
+                </munit-tools:with-attributes>
+            </munit-tools:verify-call>
+            <munit-tools:assert-that expression="#[payload.aiInsights]"
+                                     is="#[MunitTools::nullValue()]" />
+        </munit:validation>
+    </munit:test>
+</mule>

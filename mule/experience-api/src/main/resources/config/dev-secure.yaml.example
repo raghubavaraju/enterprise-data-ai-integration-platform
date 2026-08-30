@@ -1,0 +1,32 @@
+# =============================================================================
+# TEMPLATE ONLY - the real *-secure.yaml files are encrypted and NOT committed.
+# =============================================================================
+# Values are encrypted with the Mule secure-properties module:
+#
+#   java -cp secure-properties-tool.jar \
+#     com.mulesoft.tools.SecurePropertiesTool \
+#     string encrypt AES CBC "$SECURE_KEY" "the-actual-value"
+#
+# and stored below as ![base64].  The key itself is a Runtime Manager secure
+# property, injected as -M-Dsecure.key at deploy time.  It is never in git,
+# never in the pom, and never in a pipeline variable that is echoed to a log.
+#
+# Rotation: re-encrypt with the new key, deploy, then revoke the old key.  The
+# application does not change, which is the point of keeping the indirection.
+#
+# Why encrypted files at all, when Runtime Manager can hold properties directly?
+# Because the *set* of properties an application needs should be reviewable in
+# the repository even when the values are not.  A missing property should fail
+# code review, not a 3 a.m. deployment.
+# =============================================================================
+
+processApi:
+  clientId: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+  clientSecret: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+
+tls:
+  truststore:
+    password: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+  keystore:
+    password: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+    keyPassword: "![ENCRYPTED_VALUE_PLACEHOLDER]"

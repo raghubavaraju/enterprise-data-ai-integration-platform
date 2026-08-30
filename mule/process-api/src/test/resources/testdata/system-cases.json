@@ -1,0 +1,46 @@
+{
+  "data": [
+    {
+      "caseId": "CAS-300009",
+      "caseType": "BILLING",
+      "priority": "LOW",
+      "subject": "Billing",
+      "status": "RESOLVED",
+      "channel": "CHAT",
+      "openedAt": "2026-02-03T00:00:00",
+      "resolvedAt": "2026-02-07T00:00:00",
+      "resolutionHours": 96,
+      "csatScore": 4,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    },
+    {
+      "caseId": "CAS-300012",
+      "caseType": "GENERAL_ENQUIRY",
+      "priority": "HIGH",
+      "subject": "General Enquiry",
+      "status": "RESOLVED",
+      "channel": "PHONE",
+      "openedAt": "2026-02-01T00:00:00",
+      "resolvedAt": "2026-02-07T00:00:00",
+      "resolutionHours": 144,
+      "csatScore": 4,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    },
+    {
+      "caseId": "CAS-300010",
+      "caseType": "DELIVERY_ISSUE",
+      "priority": "HIGH",
+      "subject": "Delivery Issue",
+      "status": "OPEN",
+      "channel": "CHAT",
+      "openedAt": "2025-10-29T00:00:00",
+      "resolvedAt": null,
+      "resolutionHours": null,
+      "csatScore": null,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    }
+  ]
+}

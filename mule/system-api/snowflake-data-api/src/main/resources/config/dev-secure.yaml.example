@@ -1,0 +1,17 @@
+# TEMPLATE ONLY - the real file is encrypted and is not committed.
+#
+# The Snowflake private key is the single most sensitive value in the platform:
+# it authenticates the only identity that can read the customer warehouse.
+# It lives in Anypoint Secrets Manager, is injected at deploy time, and is
+# rotated on a 90-day schedule with an overlap window so rotation is not an
+# outage. It is never written to a log, never passed through DataWeave, and
+# never present on a developer machine.
+snowflake:
+  privateKeyPem: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+  publicKeyFingerprint: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+
+tls:
+  truststore: {password: "![ENCRYPTED_VALUE_PLACEHOLDER]"}
+  keystore:
+    password: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+    keyPassword: "![ENCRYPTED_VALUE_PLACEHOLDER]"

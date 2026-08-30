@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:os="http://www.mulesoft.org/schema/mule/os"
+      xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/os
+        http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+        http://www.mulesoft.org/schema/mule/validation
+        http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+
+    <!--
+      ==========================================================================
+      AI Insights API  (experience layer)
+      ==========================================================================
+      A separate API from the Customer Experience API, deployed separately and
+      policed separately.  The reasons are operational, not aesthetic:
+
+        * the latency budget is seconds, not the 800 ms of a profile lookup
+        * every call costs money, so it gets spike control and a tighter SLA
+        * a model outage must not degrade a profile lookup
+        * outputs are audited and sometimes require human approval
+
+      Bundling the two would force one set of policies onto two workloads that
+      have nothing in common but the word "customer".
+    -->
+
+    <http:request-config name="intelligence-process-request-config"
+                         responseTimeout="${aiProcessApi.timeoutMs}">
+        <http:request-connection host="${aiProcessApi.host}" port="${aiProcessApi.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:request-config>
+
+    <!-- ===================================================================
+         POST /customers/{customerId}/ai-analysis
+         =================================================================== -->
+    <flow name="post:\customers\(customerId)\ai-analysis:application\json:customer-experience-api-config">
+        <validation:matches-regex value="#[attributes.uriParams.customerId]"
+                                  regex="^[A-Z]{3}-[0-9]{6}$"
+                                  doc:name="Validate customerId format" />
+
+        <validation:is-true expression='#[["SUMMARY","CHURN_EXPLANATION","NEXT_BEST_ACTION",
+                                          "SENTIMENT","GROUNDED_QA"]
+                                          contains (payload.capability default "")]'
+                            doc:name="Validate capability">
+            <error-mapping sourceType="VALIDATION:INVALID_BOOLEAN"
+                           targetType="ACME:VALIDATION_ERROR" />
+        </validation:is-true>
+
+        <!-- GROUNDED_QA with no question is a client bug; answering it anyway
+             would mean inventing the question. -->
+        <choice doc:name="GROUNDED_QA needs a question">
+            <when expression='#[payload.capability == "GROUNDED_QA" and
+                                (payload.question default "") == ""]'>
+                <raise-error type="ACME:VALIDATION_ERROR"
+                             description="GROUNDED_QA requires a question." />
+            </when>
+        </choice>
+
+        <set-variable variableName="idempotencyKey"
+                      value="#[attributes.headers['idempotency-key'] default null]"
+                      doc:name="Read idempotency key" />
+
+        <!--
+          Idempotency is checked here AND enforced in the process API. Belt and
+          braces on purpose: the check here saves a network hop on the common
+          case; the enforcement downstream is the one that actually guarantees a
+          second model call is not paid for, because another experience API can
+          call the same process API.
+        -->
+        <choice doc:name="Replay?">
+            <when expression="#[vars.idempotencyKey != null]">
+                <os:retrieve key="#[vars.idempotencyKey]" objectStore="idempotency-store"
+                             target="cachedResponse" doc:name="Look up idempotency key">
+                    <os:default-value><![CDATA[#[null]]]></os:default-value>
+                </os:retrieve>
+            </when>
+            <otherwise>
+                <set-variable variableName="cachedResponse" value="#[null]" />
+            </otherwise>
+        </choice>
+
+        <choice doc:name="Serve replay or generate">
+            <when expression="#[vars.cachedResponse != null]">
+                <logger level="INFO" category="acme.experience.ai"
+                        message='#["ai_idempotent_replay key=" ++ vars.idempotencyKey
+                                  ++ " correlationId=" ++ correlationId]' />
+                <ee:transform doc:name="Replay response">
+                    <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.cachedResponse ++ { meta: { correlationId: correlationId, idempotentReplay: true } }]]></ee:set-payload></ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <http:request method="POST" config-ref="intelligence-process-request-config"
+                              path="/api/v1/customers/{customerId}/ai-analysis"
+                              target="aiResponse"
+                              doc:name="Customer Intelligence Process API">
+                    <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+                    <http:body><![CDATA[#[payload]]]></http:body>
+                    <http:headers><![CDATA[#[{
+                        "x-correlation-id": correlationId,
+                        "Idempotency-Key": vars.idempotencyKey default ""
+                    }]]]></http:headers>
+                    <!--
+                      count="0": a generative call is NEVER retried automatically.
+                      It is not idempotent from a cost perspective, and a slow
+                      response is nearly always a slow model rather than a lost
+                      request. The client decides whether to try again, with an
+                      idempotency key.
+                    -->
+                    <reconnect frequency="0" count="0" />
+                </http:request>
+
+                <ee:transform doc:name="Shape insight">
+                    <ee:message><ee:set-payload resource="dw/ai-insight-response.dwl" /></ee:message>
+                </ee:transform>
+
+                <choice doc:name="Store idempotency key">
+                    <when expression="#[vars.idempotencyKey != null]">
+                        <os:store key="#[vars.idempotencyKey]" objectStore="idempotency-store"
+                                  doc:name="Store response against key">
+                            <os:value><![CDATA[#[payload]]]></os:value>
+                        </os:store>
+                    </when>
+                </choice>
+
+                <logger level="INFO" category="acme.experience.ai"
+                        message='#["ai_insight_served capability=" ++ (payload."type" default "")
+                                  ++ " confidence=" ++ (payload.confidence default 0)
+                                  ++ " reviewStatus=" ++ (payload.reviewStatus default "")
+                                  ++ " correlationId=" ++ correlationId]' />
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

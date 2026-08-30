@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit
+        http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools
+        http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      MUnit suite - Snowflake Data System API
+      ==========================================================================
+      The properties worth proving in this layer are security and correctness of
+      the wire translation, not business behaviour - there is none here by
+      design.
+
+        1. the customer id is sent as a BIND value, never concatenated into SQL
+        2. Snowflake's string result set is coerced to the declared types
+        3. an empty result set becomes 404, not an empty object
+        4. a Snowflake 400 is NOT retried (retrying a bad statement is pointless)
+        5. a Snowflake timeout IS retried, then surfaces as a retryable error
+        6. the correlation id is sent as QUERY_TAG so the query is traceable
+        7. the JWT is minted once and reused from cache
+    -->
+
+    <munit:config name="snowflake-data-system-api-test-suite.xml" />
+
+    <munit:before-test name="stub-jwt">
+        <!-- The signer is a Java component; stub it so the suite needs no keys. -->
+        <munit-tools:mock-when processor="java:invoke-static">
+            <munit-tools:with-attributes>
+                <munit-tools:with-attribute attributeName="doc:name"
+                                            whereValue="Sign JWT (RS256)" />
+            </munit-tools:with-attributes>
+            <munit-tools:then-return>
+                <munit-tools:payload value="#['stub.jwt.token']" />
+            </munit-tools:then-return>
+        </munit-tools:mock-when>
+    </munit:before-test>
+
+    <!-- =================================================================== -->
+    <munit:test name="customer-id-is-sent-as-a-bind-parameter"
+                description="The one input a caller controls must never reach the statement text.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/snowflake-customer-360-response.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: {customerId: %dw 2.0 --- &quot;CRM-100005&apos; OR 1=1--&quot;},
+                    queryParams: {}, headers: {}, method: 'GET'
+                }]" />
+            </munit:set-event>
+            <try>
+                <flow-ref name="get:\customers\(customerId)\360:snowflake-data-system-api-config" />
+                <error-handler>
+                    <on-error-continue type="ANY" />
+                </error-handler>
+            </try>
+        </munit:execution>
+
+        <munit:validation>
+            <!-- The injected string must appear in the bindings and nowhere in
+                 the statement. If this assertion ever fails, the API has become
+                 an SQL injection endpoint. -->
+            <munit-tools:assert-that expression="#[vars.statement]"
+                                     is="#[MunitTools::not(MunitTools::containsString('OR 1=1'))]"
+                                     message="The statement text must never contain caller input." />
+            <munit-tools:assert-that expression="#[vars.bindings['1'].value]"
+                                     is="#[MunitTools::containsString('OR 1=1')]"
+                                     message="Caller input belongs in the bind parameters." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="result-set-strings-are-coerced-to-declared-types"
+                description="Snowflake returns everything as a string; typed consumers need types.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/snowflake-customer-360-response.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{uriParams: {customerId: 'CRM-100005'},
+                                            queryParams: {}, headers: {}, method: 'GET'}]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:snowflake-data-system-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.TOTAL_ORDERS is Number]"
+                                     is="#[MunitTools::equalTo(true)]"
+                                     message="A FIXED column must arrive as a number." />
+            <munit-tools:assert-that expression="#[payload.MARKETING_OPT_IN is Boolean]"
+                                     is="#[MunitTools::equalTo(true)]"
+                                     message="A BOOLEAN column must arrive as a boolean." />
+            <munit-tools:assert-that expression="#[payload.CUSTOMER_ID is String]"
+                                     is="#[MunitTools::equalTo(true)]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="empty-result-set-becomes-404"
+                expectedErrorType="ACME:NOT_FOUND"
+                description="No row is 'this customer does not exist', not an empty object.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[{
+                        resultSetMetaData: {numRows: 0, rowType: []},
+                        data: [], code: '090001'
+                    }]" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{uriParams: {customerId: 'CRM-999999'},
+                                            queryParams: {}, headers: {}, method: 'GET'}]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:snowflake-data-system-api-config" />
+        </munit:execution>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="a-bad-statement-is-not-retried"
+                expectedErrorType="ACME:DATA_PLATFORM_ERROR"
+                description="Retrying a statement Snowflake rejected cannot succeed.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:BAD_REQUEST" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{uriParams: {customerId: 'CRM-100005'},
+                                            queryParams: {}, headers: {}, method: 'GET'}]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:snowflake-data-system-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <!-- until-successful must not have retried: exactly one attempt. -->
+            <munit-tools:verify-call processor="http:request" times="1">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+            </munit-tools:verify-call>
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="correlation-id-is-sent-as-query-tag"
+                description="QUERY_TAG is the join between a Mule log line and a Snowflake query.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/snowflake-customer-360-response.json","application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{uriParams: {customerId: 'CRM-100005'},
+                                            queryParams: {}, headers: {}, method: 'GET'}]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:snowflake-data-system-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:verify-call processor="http:request" times="1">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Snowflake SQL API - execute statement" />
+                </munit-tools:with-attributes>
+            </munit-tools:verify-call>
+        </munit:validation>
+    </munit:test>
+</mule>

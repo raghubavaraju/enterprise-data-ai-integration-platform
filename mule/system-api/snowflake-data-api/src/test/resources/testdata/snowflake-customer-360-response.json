@@ -1,0 +1,330 @@
+{
+  "resultSetMetaData": {
+    "numRows": 1,
+    "format": "jsonv2",
+    "rowType": [
+      {
+        "name": "CUSTOMER_ID",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "FULL_NAME",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "EMAIL",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "PHONE",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "BIRTH_DATE",
+        "type": "DATE",
+        "nullable": true
+      },
+      {
+        "name": "CUSTOMER_SEGMENT",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "PREFERRED_CHANNEL",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "MARKETING_OPT_IN",
+        "type": "BOOLEAN",
+        "nullable": true
+      },
+      {
+        "name": "CUSTOMER_STATUS",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "CUSTOMER_SINCE",
+        "type": "DATE",
+        "nullable": true
+      },
+      {
+        "name": "TENURE_DAYS",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "PRIMARY_CITY",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "PRIMARY_STATE",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "PRIMARY_COUNTRY",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOTAL_ORDERS",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "TOTAL_NET_REVENUE",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "AVG_ORDER_VALUE",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "ORDER_FREQUENCY_PER_YEAR",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "LAST_ORDER_DATE",
+        "type": "DATE",
+        "nullable": true
+      },
+      {
+        "name": "DAYS_SINCE_LAST_ORDER",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "REVENUE_LAST_365D",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "RETURN_RATE",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "PRIMARY_ORDER_CHANNEL",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOTAL_CASES",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "OPEN_CASES",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "CASES_LAST_90D",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "AVG_CSAT",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "AVG_RESOLUTION_HOURS",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "TOP_CASE_TYPE",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "LOYALTY_TIER",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "LOYALTY_STATUS",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "LOYALTY_POINTS_BALANCE",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "LOYALTY_ENROLLED_AT",
+        "type": "DATE",
+        "nullable": true
+      },
+      {
+        "name": "INTERACTIONS_LAST_90D",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "NEGATIVE_SIGNALS_90D",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "ENGAGEMENT_SCORE",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "CUSTOMER_LIFETIME_VALUE",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "PREDICTED_CLV_12M",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "VALUE_TIER",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "CHURN_PROBABILITY",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "CHURN_RISK_BAND",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "MODEL_NAME",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "MODEL_VERSION",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_1",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_1_CONTRIB",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_2",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_2_CONTRIB",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_3",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "TOP_DRIVER_3_CONTRIB",
+        "type": "REAL",
+        "nullable": true
+      },
+      {
+        "name": "DATA_COMPLETENESS_SCORE",
+        "type": "FIXED",
+        "nullable": true
+      },
+      {
+        "name": "CONTRIBUTING_SOURCES",
+        "type": "TEXT",
+        "nullable": true
+      },
+      {
+        "name": "AS_OF_TIMESTAMP",
+        "type": "TIMESTAMP_NTZ",
+        "nullable": true
+      }
+    ]
+  },
+  "data": [
+    [
+      "CRM-100005",
+      "Sofia Chen",
+      "sofia.chen@example.com",
+      "+1402-555-1005",
+      "1960-06-06",
+      "PREMIUM",
+      "WEB",
+      "false",
+      "ACTIVE",
+      "2024-12-07",
+      "630",
+      "Atlanta",
+      "GA",
+      "US",
+      "15",
+      "3070.26",
+      "219.30",
+      "20.4291",
+      "2026-06-06",
+      "84",
+      "3070.26",
+      "0.0000",
+      "WEB",
+      "4",
+      "1",
+      "0",
+      "3.33",
+      "232.00",
+      "DELIVERY_ISSUE",
+      "BRONZE",
+      "ACTIVE",
+      "14085",
+      "2021-07-07",
+      "2",
+      "0",
+      "63.58",
+      "3070.26",
+      "2687.61",
+      "HIGH",
+      "0.4001",
+      "MEDIUM",
+      "acme-churn-baseline",
+      "v1.2.0",
+      "DECLINING_ORDER_TREND",
+      "0.1563",
+      "PURCHASE_RECENCY",
+      "0.1050",
+      "LOYALTY_INACTIVITY",
+      "0.0800",
+      "100.00",
+      "CRM,OMS,SUPPORT,LOYALTY,ENGAGEMENT",
+      "2026-08-29T13:02:20.201000"
+    ]
+  ],
+  "code": "090001",
+  "statementStatusUrl": null,
+  "message": "Statement executed successfully.",
+  "statementHandle": "0ea3c5aace5d4d7fa90e2fed82729aa1",
+  "createdOn": 1788008822968,
+  "correlationId": "acme-7fce9299-880a-4263-b984-65a72a714b4f"
+}

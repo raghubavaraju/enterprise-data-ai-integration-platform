@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:os="http://www.mulesoft.org/schema/mule/os"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit
+        http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/os
+        http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+
+    <!--
+      ==========================================================================
+      Snowflake Data System API  (system layer)
+      ==========================================================================
+      The only component in the estate permitted to query Snowflake.
+
+      Four design rules, each of which is a question that gets asked in review:
+
+      1. "Why not let the process API query Snowflake directly?"
+         Because then every process API needs a warehouse credential, a
+         connection strategy and knowledge of the schema, and a table rename
+         becomes a multi-application change. One system API is one blast radius.
+
+      2. "Why the SQL API instead of JDBC?"
+         CloudHub workers are ephemeral and horizontally scaled. A JDBC pool per
+         worker multiplies idle Snowflake sessions by the worker count and
+         defeats warehouse auto-suspend - you pay for a warehouse kept warm by
+         connections nobody is using. Over HTTP we also get the platform's own
+         retry, timeout, circuit-breaker and correlation-id behaviour for free,
+         and long statements can be submitted asynchronously and polled.
+
+      3. "Why can't a caller send SQL?"
+         Because a caller that can send SQL can send any SQL. Statements live in
+         dw/queries/ as parameterised resources; the only thing a caller
+         controls is a bind value.
+
+      4. "Why read views, never tables?"
+         So a warehouse refactor is not an API change. The view is the contract.
+
+      Python counterpart: services/gateway/system_layer.py plus
+      services/data_api/app.py (the local implementation of the SQL API).
+    -->
+
+    <http:listener-config name="system-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${http.port}"
+                                  protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:listener-config>
+
+    <apikit:config name="snowflake-data-system-api-config"
+                   raml="resource::${anypoint.orgId}:snowflake-data-system-api:1.0.0:raml:zip:snowflake-data-system-api.raml"
+                   outboundHeadersMapName="outboundHeaders"
+                   httpStatusVarName="httpStatus" />
+
+    <!--
+      Snowflake SQL API over HTTPS.  Authentication is a key-pair JWT for the
+      SVC_MULE_INTEGRATION user, minted per call from a private key held in the
+      secure properties.  No password exists for this account, so there is no
+      password to leak, rotate by hand, or find in a support ticket.
+    -->
+    <http:request-config name="snowflake-sql-api-config"
+                         responseTimeout="${snowflake.statementTimeoutMs}"
+                         basePath="/api/v2">
+        <http:request-connection host="${snowflake.account}.snowflakecomputing.com"
+                                 port="443" protocol="HTTPS"
+                                 tlsContext="platform-tls-context">
+            <http:client-socket-properties>
+                <http:tcp-client-socket-properties connectionTimeout="3000"
+                                                   keepAlive="true" />
+            </http:client-socket-properties>
+        </http:request-connection>
+        <http:default-headers>
+            <http:default-header key="X-Snowflake-Authorization-Token-Type"
+                                 value="KEYPAIR_JWT" />
+            <http:default-header key="Accept" value="application/json" />
+            <http:default-header key="User-Agent" value="acme-snowflake-system-api/1.0" />
+        </http:default-headers>
+    </http:request-config>
+
+    <!-- ===================================================================
+         Main listener + router
+         =================================================================== -->
+    <flow name="snowflake-data-system-api-main">
+        <http:listener config-ref="system-http-listener-config" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="snowflake-data-system-api-config" />
+        <error-handler ref="global-error-handler" />
+    </flow>
+
+    <!-- ===================================================================
+         Shared sub-flow: execute one parameterised statement
+         =================================================================== -->
+    <sub-flow name="execute-snowflake-statement">
+        <!--
+          QUERY_TAG carries the correlation id into Snowflake. This is the join
+          that makes a single trace possible across MuleSoft and the warehouse:
+          given a correlation id from a support ticket, ACCOUNT_USAGE.QUERY_HISTORY
+          can be filtered to the exact statement, its cost and its duration.
+          See docs/observability.md.
+        -->
+        <ee:transform doc:name="Build SQL API request">
+            <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    statement: vars.statement,
+    timeout: p('snowflake.statementTimeoutSeconds') as Number,
+    database: p('snowflake.database'),
+    schema: vars.schemaName default p('snowflake.defaultSchema'),
+    warehouse: p('snowflake.warehouse'),
+    role: p('snowflake.role'),
+    /* Bind parameters, always. Concatenating a path segment into SQL is
+       injection with extra steps, and this API's inputs come from a URL. */
+    bindings: vars.bindings default {},
+    parameters: {
+        QUERY_TAG: correlationId,
+        STATEMENT_TIMEOUT_IN_SECONDS: p('snowflake.statementTimeoutSeconds')
+    }
+}]]></ee:set-payload></ee:message>
+        </ee:transform>
+
+        <!--
+          until-successful is the retry construct. It wraps ONLY transient
+          failures: a Snowflake 4xx means the statement is wrong and will be
+          wrong on every attempt, so retrying it just multiplies load and
+          latency. The mapping below turns non-retryable failures into platform
+          error types before they can reach here.
+        -->
+        <until-successful maxRetries="${snowflake.maxRetries}"
+                          millisBetweenRetries="${snowflake.retryDelayMs}"
+                          doc:name="Retry transient failures only">
+            <http:request method="POST" config-ref="snowflake-sql-api-config"
+                          path="/statements" target="sqlResponse"
+                          doc:name="Snowflake SQL API - execute statement">
+                <http:headers><![CDATA[#[{
+                    "Authorization": "Bearer " ++ vars.snowflakeJwt,
+                    "x-correlation-id": correlationId
+                }]]]></http:headers>
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:response-validator>
+                    <http:success-status-code-validator values="200,202" />
+                </http:response-validator>
+                <error-mapping sourceType="HTTP:BAD_REQUEST"
+                               targetType="ACME:DATA_PLATFORM_ERROR" />
+                <error-mapping sourceType="HTTP:UNAUTHORIZED"
+                               targetType="ACME:UNAUTHORIZED" />
+                <error-mapping sourceType="HTTP:TIMEOUT"
+                               targetType="ACME:DOWNSTREAM_TIMEOUT" />
+            </http:request>
+        </until-successful>
+
+        <!--
+          202 means the statement is still running. Rather than holding the
+          caller's connection open, poll the statement handle. This is the whole
+          reason the SQL API is preferable to JDBC for an integration platform:
+          a long query does not occupy a worker thread.
+        -->
+        <choice doc:name="Async statement?">
+            <when expression="#[vars.sqlResponse.code == '333334']">
+                <until-successful maxRetries="${snowflake.pollMaxAttempts}"
+                                  millisBetweenRetries="${snowflake.pollIntervalMs}"
+                                  doc:name="Poll until the statement completes">
+                    <http:request method="GET" config-ref="snowflake-sql-api-config"
+                                  path="/statements/{handle}" target="sqlResponse"
+                                  doc:name="Snowflake SQL API - poll">
+                        <http:uri-params><![CDATA[#[{handle: vars.sqlResponse.statementHandle}]]]></http:uri-params>
+                        <http:headers><![CDATA[#[{"Authorization": "Bearer " ++ vars.snowflakeJwt}]]]></http:headers>
+                    </http:request>
+                    <validation:is-true xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+                                        expression="#[vars.sqlResponse.code != '333334']"
+                                        doc:name="Still running?" />
+                </until-successful>
+            </when>
+        </choice>
+
+        <ee:transform doc:name="Snowflake result set to canonical rows">
+            <ee:message><ee:set-payload resource="dw/sql-result-to-rows.dwl" /></ee:message>
+        </ee:transform>
+
+        <logger level="INFO" category="acme.system.snowflake"
+                message='#["snowflake_query statement=" ++ (vars.statementName default "unknown")
+                          ++ " rows=" ++ sizeOf(payload)
+                          ++ " correlationId=" ++ correlationId]' />
+    </sub-flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/360
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\360:snowflake-data-system-api-config">
+        <flow-ref name="mint-snowflake-jwt" doc:name="Mint key-pair JWT" />
+        <set-variable variableName="statementName" value="CUSTOMER_360" />
+        <set-variable variableName="schemaName" value="ANALYTICS" />
+        <set-variable variableName="statement"
+                      value='#[readUrl("classpath://dw/queries/customer-360.sql", "text/plain")]' />
+        <set-variable variableName="bindings"
+                      value="#[{'1': {type: 'TEXT', value: attributes.uriParams.customerId}}]" />
+
+        <flow-ref name="execute-snowflake-statement" />
+
+        <choice doc:name="Row found?">
+            <when expression="#[sizeOf(payload) == 0]">
+                <raise-error type="ACME:NOT_FOUND"
+                             description="No Customer 360 record exists for this customer." />
+            </when>
+            <otherwise>
+                <set-payload value="#[payload[0]]" doc:name="Single row" />
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/orders
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\orders:snowflake-data-system-api-config">
+        <flow-ref name="mint-snowflake-jwt" />
+        <set-variable variableName="statementName" value="CUSTOMER_ORDERS" />
+        <set-variable variableName="schemaName" value="ANALYTICS" />
+        <set-variable variableName="statement"
+                      value='#[readUrl("classpath://dw/queries/customer-orders.sql", "text/plain")]' />
+        <set-variable variableName="bindings" value="#[{
+            '1': {type: 'TEXT',  value: attributes.uriParams.customerId},
+            '2': {type: 'FIXED', value: (attributes.queryParams.limit  default 20) as String},
+            '3': {type: 'FIXED', value: (attributes.queryParams.offset default 0)  as String}
+        }]" />
+        <flow-ref name="execute-snowflake-statement" />
+        <ee:transform doc:name="Wrap with pagination">
+            <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    data: payload,
+    pagination: {
+        limit:  (attributes.queryParams.limit  default 20) as Number,
+        offset: (attributes.queryParams.offset default 0)  as Number,
+        returned: sizeOf(payload),
+        /* hasMore is derived from the page being full rather than from a second
+           COUNT(*) query. A count over a large partition costs more than the
+           page itself, and the client only needs to know whether to ask again. */
+        hasMore: sizeOf(payload) == ((attributes.queryParams.limit default 20) as Number)
+    }
+}]]></ee:set-payload></ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/churn-risk
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\churn-risk:snowflake-data-system-api-config">
+        <flow-ref name="mint-snowflake-jwt" />
+        <set-variable variableName="statementName" value="CHURN_RISK" />
+        <set-variable variableName="schemaName" value="AI" />
+        <set-variable variableName="statement"
+                      value='#[readUrl("classpath://dw/queries/churn-risk.sql", "text/plain")]' />
+        <set-variable variableName="bindings"
+                      value="#[{'1': {type: 'TEXT', value: attributes.uriParams.customerId}}]" />
+        <flow-ref name="execute-snowflake-statement" />
+        <choice>
+            <when expression="#[sizeOf(payload) == 0]">
+                <raise-error type="ACME:NOT_FOUND"
+                             description="No churn score exists for this customer." />
+            </when>
+            <otherwise>
+                <set-payload value="#[payload[0]]" />
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ===================================================================
+         Key-pair JWT minting
+         =================================================================== -->
+    <sub-flow name="mint-snowflake-jwt">
+        <!--
+          Snowflake key-pair authentication: a short-lived RS256 JWT signed with
+          the service account's private key.
+
+          Why key-pair and not a password: there is no shared secret that can
+          be typed into a support ticket, rotation is a key swap and not a
+          coordinated password change, and the token lifetime is minutes rather
+          than "until someone notices".
+
+          The token is cached for slightly less than its lifetime. Minting one per
+          request would burn CPU on every call for no benefit; caching it beyond
+          its lifetime would produce a 401 storm at exactly the wrong moment.
+        -->
+        <os:retrieve key="snowflake-jwt" objectStore="jwt-cache-store"
+                     target="snowflakeJwt" doc:name="Cached JWT?">
+            <os:default-value><![CDATA[#[null]]]></os:default-value>
+        </os:retrieve>
+
+        <choice doc:name="Mint if absent">
+            <when expression="#[vars.snowflakeJwt == null]">
+                <ee:transform doc:name="Build and sign JWT">
+                    <ee:message><ee:set-payload><![CDATA[%dw 2.0
+import * from dw::Crypto
+output application/json
+/*
+ * qualified username is ACCOUNT.USER, and the subject is
+ * ACCOUNT.USER.SHA256:<base64 public key fingerprint>, per Snowflake's spec.
+ * The private key never leaves the secure properties store.
+ */
+var qualifiedUser = upper(p('snowflake.account') ++ "." ++ p('snowflake.user'))
+---
+{
+    iss: qualifiedUser ++ ".SHA256:" ++ p('secure::snowflake.publicKeyFingerprint'),
+    sub: qualifiedUser,
+    iat: now() as Number { unit: "seconds" },
+    exp: (now() + |PT55M|) as Number { unit: "seconds" }
+}]]></ee:set-payload></ee:message>
+                </ee:transform>
+
+                <!-- Signing is delegated to a small Java component instead of
+                     done in DataWeave: RS256 signing needs the private key as a
+                     key object, and passing key material through DataWeave is
+                     the kind of convenience that ends up in a log. -->
+                <java:invoke-static xmlns:java="http://www.mulesoft.org/schema/mule/java"
+                                    class="com.acmeretail.integration.SnowflakeJwtSigner"
+                                    method="sign(String,String)"
+                                    target="snowflakeJwt" doc:name="Sign JWT (RS256)">
+                    <java:args><![CDATA[#[{
+                        arg0: write(payload, 'application/json'),
+                        arg1: p('secure::snowflake.privateKeyPem')
+                    }]]]></java:args>
+                </java:invoke-static>
+
+                <os:store key="snowflake-jwt" objectStore="jwt-cache-store">
+                    <os:value><![CDATA[#[vars.snowflakeJwt]]]></os:value>
+                </os:store>
+            </when>
+        </choice>
+    </sub-flow>
+
+    <!-- JWT cache with a TTL shorter than the token lifetime (55 min), so a
+         cached token is never served after it has expired. -->
+    <os:object-store name="jwt-cache-store" persistent="false" maxEntries="1"
+                     entryTtl="50" entryTtlUnit="MINUTES"
+                     expirationInterval="1" expirationIntervalUnit="MINUTES" />
+</mule>

@@ -1,0 +1,9 @@
+{
+  "policyTemplateId": "ip-whitelist",
+  "policyVersion": "1.2.0",
+  "configurationData": {
+    "ipExpression": "#[attributes.headers['x-forwarded-for']]",
+    "ips": ["10.20.0.0/16", "10.30.0.0/16"]
+  },
+  "notes": "Process and System API instances only. These APIs have no external consumers by design; the allow-list is the control that makes that design statement enforceable rather than aspirational."
+}

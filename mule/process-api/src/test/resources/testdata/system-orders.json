@@ -1,0 +1,49 @@
+{
+  "data": [
+    {
+      "orderId": "ORD-200026",
+      "orderDate": "2026-06-06",
+      "orderStatus": "COMPLETED",
+      "channel": "WEB",
+      "currencyCode": "USD",
+      "orderAmount": 199.75,
+      "discountAmount": 0,
+      "shippingAmount": 5.05,
+      "netAmount": 199.75,
+      "lineCount": 1,
+      "totalUnits": 5
+    },
+    {
+      "orderId": "ORD-200016",
+      "orderDate": "2026-05-25",
+      "orderStatus": "COMPLETED",
+      "channel": "MARKETPLACE",
+      "currencyCode": "USD",
+      "orderAmount": 283.89,
+      "discountAmount": 28,
+      "shippingAmount": 4.89,
+      "netAmount": 255.5,
+      "lineCount": 3,
+      "totalUnits": 12
+    },
+    {
+      "orderId": "ORD-200028",
+      "orderDate": "2026-05-24",
+      "orderStatus": "COMPLETED",
+      "channel": "MARKETPLACE",
+      "currencyCode": "USD",
+      "orderAmount": 370.91,
+      "discountAmount": 0,
+      "shippingAmount": 0.39,
+      "netAmount": 370.91,
+      "lineCount": 4,
+      "totalUnits": 12
+    }
+  ],
+  "pagination": {
+    "limit": 3,
+    "offset": 0,
+    "total": 15,
+    "hasMore": true
+  }
+}

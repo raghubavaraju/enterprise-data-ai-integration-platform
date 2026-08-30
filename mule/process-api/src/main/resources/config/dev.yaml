@@ -1,0 +1,44 @@
+# =============================================================================
+# Customer 360 / Customer Intelligence Process APIs - development
+# =============================================================================
+app:
+  name: customer-360-process-api
+  version: 1.0.0
+
+http:
+  port: "8082"
+
+api:
+  id: "${anypoint.api.id}"
+  mainFlow: customer-360-process-api-main
+
+snowflakeApi:
+  host: snowflake-data-system-api-dev.eu1.cloudhub.io
+  port: "443"
+  # Must be shorter than the experience API's budget for this call, otherwise
+  # the experience API times out first and the work here is wasted.
+  timeoutMs: 3500
+
+aiService:
+  host: ai-service-dev.internal.acme-retail.example.com
+  port: "443"
+  timeoutMs: 20000
+  connectTimeoutMs: 2000
+  # Bulkhead: the maximum number of concurrent generative calls this
+  # application will make, regardless of inbound traffic.
+  maxConcurrency: 4
+
+idempotency:
+  ttlMinutes: 15
+
+circuitBreaker:
+  failureThreshold: 5
+  resetSeconds: 30
+
+tls:
+  truststore: {path: tls/dev-truststore.jks}
+  keystore: {path: tls/dev-keystore.jks}
+
+logging:
+  level: DEBUG
+  logPayloads: false

@@ -1,0 +1,10 @@
+{
+  "policyTemplateId": "client-id-enforcement",
+  "policyVersion": "1.2.0",
+  "configurationData": {
+    "credentialsOriginHasHttpBasicAuthenticationHeader": "customExpression",
+    "clientIdExpression": "#[attributes.headers['client_id']]",
+    "clientSecretExpression": "#[attributes.headers['client_secret']]"
+  },
+  "notes": "Every call is attributable to a registered client application. This is what makes the AI cost attribution in AI_REQUEST_AUDIT.REQUESTED_BY_CLIENT_ID meaningful."
+}

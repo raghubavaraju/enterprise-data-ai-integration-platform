@@ -1,0 +1,158 @@
+{
+  "customerId": "CRM-100005",
+  "profile": {
+    "fullName": "Sofia Chen",
+    "email": "sofia.chen@example.com",
+    "phone": "+1402-555-1005",
+    "birthDate": "1960-06-06",
+    "segment": "PREMIUM",
+    "status": "ACTIVE",
+    "preferredChannel": "WEB",
+    "marketingOptIn": false,
+    "customerSince": "2024-12-07",
+    "tenureDays": 630,
+    "location": {
+      "city": "Atlanta",
+      "state": "GA",
+      "country": "US"
+    }
+  },
+  "orders": [
+    {
+      "orderId": "ORD-200026",
+      "orderDate": "2026-06-06",
+      "orderStatus": "COMPLETED",
+      "channel": "WEB",
+      "currencyCode": "USD",
+      "orderAmount": 199.75,
+      "discountAmount": 0,
+      "shippingAmount": 5.05,
+      "netAmount": 199.75,
+      "lineCount": 1,
+      "totalUnits": 5
+    },
+    {
+      "orderId": "ORD-200016",
+      "orderDate": "2026-05-25",
+      "orderStatus": "COMPLETED",
+      "channel": "MARKETPLACE",
+      "currencyCode": "USD",
+      "orderAmount": 283.89,
+      "discountAmount": 28,
+      "shippingAmount": 4.89,
+      "netAmount": 255.5,
+      "lineCount": 3,
+      "totalUnits": 12
+    }
+  ],
+  "orderPagination": {
+    "limit": 2,
+    "offset": 0,
+    "total": 15,
+    "hasMore": true
+  },
+  "support": [
+    {
+      "caseId": "CAS-300009",
+      "caseType": "BILLING",
+      "priority": "LOW",
+      "subject": "Billing",
+      "status": "RESOLVED",
+      "channel": "CHAT",
+      "openedAt": "2026-02-03T00:00:00",
+      "resolvedAt": "2026-02-07T00:00:00",
+      "resolutionHours": 96,
+      "csatScore": 4,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    },
+    {
+      "caseId": "CAS-300012",
+      "caseType": "GENERAL_ENQUIRY",
+      "priority": "HIGH",
+      "subject": "General Enquiry",
+      "status": "RESOLVED",
+      "channel": "PHONE",
+      "openedAt": "2026-02-01T00:00:00",
+      "resolvedAt": "2026-02-07T00:00:00",
+      "resolutionHours": 144,
+      "csatScore": 4,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    },
+    {
+      "caseId": "CAS-300010",
+      "caseType": "DELIVERY_ISSUE",
+      "priority": "HIGH",
+      "subject": "Delivery Issue",
+      "status": "OPEN",
+      "channel": "CHAT",
+      "openedAt": "2025-10-29T00:00:00",
+      "resolvedAt": null,
+      "resolutionHours": null,
+      "csatScore": null,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    },
+    {
+      "caseId": "CAS-300011",
+      "caseType": "DELIVERY_ISSUE",
+      "priority": "HIGH",
+      "subject": "Delivery Issue",
+      "status": "RESOLVED",
+      "channel": "WEB_FORM",
+      "openedAt": "2025-07-20T00:00:00",
+      "resolvedAt": "2025-08-08T00:00:00",
+      "resolutionHours": 456,
+      "csatScore": 2,
+      "reopenCount": 0,
+      "isSlaBreached": true
+    }
+  ],
+  "loyalty": null,
+  "analytics": {
+    "totalOrders": 15,
+    "totalNetRevenue": 3070.26,
+    "avgOrderValue": 219.3,
+    "orderFrequencyPerYear": 20.4291,
+    "lastOrderDate": "2026-06-06",
+    "daysSinceLastOrder": 84,
+    "revenueLast365d": 3070.26,
+    "returnRate": 0,
+    "totalCases": 4,
+    "openCases": 1,
+    "avgCsat": 3.33,
+    "topCaseType": "DELIVERY_ISSUE",
+    "engagementScore": 63.58,
+    "customerLifetimeValue": 3070.26,
+    "predictedClv12m": 2687.61,
+    "valueTier": "HIGH"
+  },
+  "churnRisk": null,
+  "aiInsights": null,
+  "dataQuality": {
+    "completenessScore": 75,
+    "contributingSources": [
+      "CRM",
+      "OMS",
+      "SUPPORT"
+    ],
+    "asOf": "2026-08-29T13:02:20.201000"
+  },
+  "partial": true,
+  "degradedFields": [
+    {
+      "field": "loyalty",
+      "dependency": "snowflake",
+      "errorCode": "PLATFORM:DOWNSTREAM_UNAVAILABLE",
+      "reason": "system-api returned HTTP 503."
+    },
+    {
+      "field": "churnRisk",
+      "dependency": "snowflake",
+      "errorCode": "PLATFORM:DOWNSTREAM_UNAVAILABLE",
+      "reason": "system-api returned HTTP 503."
+    }
+  ],
+  "correlationId": "acme-328224e7-ba52-49a0-98a7-a7859051659a"
+}

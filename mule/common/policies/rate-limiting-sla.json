@@ -1,0 +1,15 @@
+{
+  "policyTemplateId": "rate-limiting-sla",
+  "policyVersion": "1.3.0",
+  "configurationData": {
+    "rateLimits": [
+      {"tier": "bronze",   "maximumRequests": 60,   "timePeriodInMilliseconds": 60000},
+      {"tier": "silver",   "maximumRequests": 300,  "timePeriodInMilliseconds": 60000},
+      {"tier": "gold",     "maximumRequests": 1200, "timePeriodInMilliseconds": 60000},
+      {"tier": "internal", "maximumRequests": 6000, "timePeriodInMilliseconds": 60000}
+    ],
+    "clusterizable": true,
+    "exposeHeaders": true
+  },
+  "notes": "SLA-based instead of a flat limit: a shared limit means the noisiest consumer degrades everyone else. Limits are per contract, agreed when the client is onboarded in Exchange."
+}

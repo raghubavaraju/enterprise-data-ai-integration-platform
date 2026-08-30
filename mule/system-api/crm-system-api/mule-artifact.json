@@ -1,0 +1,6 @@
+{
+  "minMuleVersion": "4.6.0",
+  "configs": ["crm-system-api.xml", "global-config.xml", "global-error-handler.xml"],
+  "secureProperties": ["secure.key"],
+  "redeploymentEnabled": true
+}

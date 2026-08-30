@@ -1,0 +1,40 @@
+# =============================================================================
+# Customer Experience API - UAT
+# =============================================================================
+app:
+  name: customer-experience-api
+  version: 1.0.0
+
+http:
+  port: "8081"
+
+api:
+  id: "${anypoint.api.id}"
+  mainFlow: customer-experience-api-main
+
+processApi:
+  host: customer-360-process-api-uat.eu1.cloudhub.io
+  port: "443"
+  timeoutMs: 5000
+
+aiProcessApi:
+  host: customer-intelligence-process-api-uat.eu1.cloudhub.io
+  port: "443"
+  timeoutMs: 25000
+
+idempotency:
+  ttlMinutes: 15
+
+circuitBreaker:
+  failureThreshold: 5
+  resetSeconds: 30
+
+tls:
+  truststore:
+    path: tls/uat-truststore.jks
+  keystore:
+    path: tls/uat-keystore.jks
+
+logging:
+  level: INFO
+  logPayloads: false

@@ -1,0 +1,8 @@
+{
+  "policyTemplateId": "header-removal",
+  "policyVersion": "1.1.0",
+  "configurationData": {
+    "outboundHeadersToRemove": ["x-query-tag", "x-mule-encoding", "server", "x-powered-by"]
+  },
+  "notes": "Internal headers must not leave the platform. x-query-tag in particular carries warehouse routing information that is useful to an attacker and to nobody else."
+}

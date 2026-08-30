@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit
+        http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      CRM System API  (system layer)
+      ==========================================================================
+      The single point in the estate that knows how Acme's CRM talks.
+
+      Its entire value is in what it absorbs.  The CRM:
+        * calls the business key "CustomerNumber";
+        * returns timestamps without a timezone;
+        * answers 200 with an empty list where a 404 would be correct;
+        * paginates with `page`/`pageSize` while everything else in the estate
+          uses `limit`/`offset`.
+
+      Every one of those would otherwise be learned by every consumer, and
+      re-learned when the CRM is replaced.  Here they are learned once.  When the
+      CRM is replaced, this application changes and nothing else does - which is
+      the concrete, checkable claim behind "API-led connectivity", as opposed to
+      the diagram.
+
+      Python counterpart: the /api/v1/crm/* routes in
+      services/gateway/system_layer.py.
+    -->
+
+    <http:listener-config name="crm-system-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${http.port}"
+                                  protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:listener-config>
+
+    <apikit:config name="crm-system-api-config"
+                   raml="resource::${anypoint.orgId}:crm-system-api:1.0.0:raml:zip:crm-system-api.raml"
+                   outboundHeadersMapName="outboundHeaders"
+                   httpStatusVarName="httpStatus" />
+
+    <http:request-config name="crm-backend-config" responseTimeout="${crm.timeoutMs}">
+        <http:request-connection host="${crm.host}" port="${crm.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context">
+            <http:authentication>
+                <http:basic-authentication username="${secure::crm.username}"
+                                           password="${secure::crm.password}" />
+            </http:authentication>
+        </http:request-connection>
+    </http:request-config>
+
+    <flow name="crm-system-api-main">
+        <http:listener config-ref="crm-system-http-listener-config" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="crm-system-api-config" />
+        <error-handler ref="global-error-handler" />
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}
+         =================================================================== -->
+    <flow name="get:\customers\(customerId):crm-system-api-config">
+        <http:request method="GET" config-ref="crm-backend-config"
+                      path="/crm/rest/v2/customers/{customerNumber}"
+                      target="crmCustomer" doc:name="CRM backend">
+            <!-- The vocabulary translation starts at the URI: our canonical
+                 `customerId` becomes the CRM's `customerNumber` here and
+                 nowhere else. -->
+            <http:uri-params><![CDATA[#[{customerNumber: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <reconnect frequency="300" count="2" />
+            <error-mapping sourceType="HTTP:NOT_FOUND" targetType="ACME:NOT_FOUND" />
+            <error-mapping sourceType="HTTP:TIMEOUT" targetType="ACME:DOWNSTREAM_TIMEOUT" />
+            <error-mapping sourceType="HTTP:CONNECTIVITY"
+                           targetType="ACME:DOWNSTREAM_UNAVAILABLE" />
+        </http:request>
+
+        <ee:transform doc:name="CRM record to canonical customer">
+            <ee:message><ee:set-payload resource="dw/crm-customer-to-canonical.dwl" /></ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/addresses
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\addresses:crm-system-api-config">
+        <http:request method="GET" config-ref="crm-backend-config"
+                      path="/crm/rest/v2/customers/{customerNumber}/addresses"
+                      target="crmAddresses" doc:name="CRM backend - addresses">
+            <http:uri-params><![CDATA[#[{customerNumber: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <reconnect frequency="300" count="2" />
+        </http:request>
+
+        <!--
+          The CRM answers 200 with an empty array for a customer that does not
+          exist, which is indistinguishable from a customer with no addresses.
+          Rather than propagate that ambiguity, confirm the customer exists and
+          translate. Absorbing an upstream ambiguity is precisely the job a
+          system API is for.
+        -->
+        <choice doc:name="Empty - absent customer or no addresses?">
+            <when expression="#[sizeOf(vars.crmAddresses default []) == 0]">
+                <http:request method="GET" config-ref="crm-backend-config"
+                              path="/crm/rest/v2/customers/{customerNumber}"
+                              target="existenceCheck" doc:name="Confirm customer exists">
+                    <http:uri-params><![CDATA[#[{customerNumber: attributes.uriParams.customerId}]]]></http:uri-params>
+                    <error-mapping sourceType="HTTP:NOT_FOUND" targetType="ACME:NOT_FOUND" />
+                </http:request>
+                <set-payload value="#[[]]" doc:name="Customer exists, really no addresses" />
+            </when>
+            <otherwise>
+                <ee:transform doc:name="Addresses to canonical">
+                    <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+(vars.crmAddresses default []) map (a) -> {
+    addressId:   a.AddressID,
+    addressType: upper(a.AddrType default "BILLING"),
+    line1:       a.Street1,
+    line2:       a.Street2,
+    city:        a.City,
+    state:       upper(a.StateProvince default ""),
+    postalCode:  a.PostCode,
+    country:     upper(a.CountryCode default "US"),
+    isPrimary:   (a.PrimaryFlag default "N") == "Y",
+    validFrom:   a.EffectiveFrom
+}]]></ee:set-payload></ee:message>
+                </ee:transform>
+            </otherwise>
+        </choice>
+    </flow>
+</mule>

@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      Global error handler - imported by every application in the estate.
+      ==========================================================================
+      One handler, one error payload shape, one place to change it. A per-flow
+      handler written by whoever built the flow is how an estate ends up with
+      six different error envelopes and clients that special-case each API.
+
+      Choosing between the four on-error behaviours is the part that gets asked
+      about in review, so it is stated explicitly here:
+
+        on-error-propagate   the flow FAILED. The error travels to the caller and
+                             the transaction (if any) rolls back. Used for
+                             everything a client must know about.
+
+        on-error-continue    the flow SUCCEEDED with a different payload. No
+                             rollback. Used where absence is a legitimate answer
+                             - e.g. the loyalty platform returning 404 for a
+                             customer who never enrolled - and where a degraded
+                             response is more useful than a failure.
+
+        until-successful     ("retry") for transient failures only: timeouts,
+                             503s, connectivity. Retrying a 400 or a 404 cannot
+                             succeed and only multiplies load.
+
+        raise-error          translate a downstream or technical error into a
+                             platform error type at the boundary, so that error
+                             handling upstream is written against our taxonomy
+                             rather than against the CRM's HTTP codes.
+
+      The mapping from error type to HTTP status is here and nowhere else.
+    -->
+
+    <error-handler name="global-error-handler">
+
+        <!-- 400 ==================== -->
+        <on-error-propagate type="APIKIT:BAD_REQUEST, APIKIT:NOT_ACCEPTABLE,
+                                  APIKIT:UNSUPPORTED_MEDIA_TYPE, VALIDATION:INVALID,
+                                  ACME:VALIDATION_ERROR"
+                            enableNotifications="true" logException="false">
+            <ee:transform doc:name="400 payload">
+                <ee:message>
+                    <ee:set-payload resource="dw/error-response.dwl" />
+                </ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:VALIDATION_ERROR"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+                    <ee:set-variable variableName="retryable">false</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <!-- 401 / 403 ==================== -->
+        <on-error-propagate type="HTTP:UNAUTHORIZED, ACME:UNAUTHORIZED" logException="false">
+            <ee:transform doc:name="401 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:UNAUTHORIZED"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">401</ee:set-variable>
+                    <ee:set-variable variableName="retryable">false</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <on-error-propagate type="HTTP:FORBIDDEN, ACME:FORBIDDEN" logException="false">
+            <ee:transform doc:name="403 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:FORBIDDEN"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">403</ee:set-variable>
+                    <ee:set-variable variableName="retryable">false</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <!-- 404 ==================== -->
+        <on-error-propagate type="APIKIT:NOT_FOUND, HTTP:NOT_FOUND, ACME:NOT_FOUND"
+                            logException="false">
+            <ee:transform doc:name="404 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:RESOURCE_NOT_FOUND"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    <ee:set-variable variableName="retryable">false</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <!-- 429 ==================== -->
+        <on-error-propagate type="HTTP:TOO_MANY_REQUESTS" logException="false">
+            <ee:transform doc:name="429 payload">
+                <ee:message>
+                    <ee:set-payload resource="dw/error-response.dwl" />
+                    <!-- Retry-After is not optional on a 429: without it every
+                         client invents its own backoff and they synchronise. -->
+                    <ee:set-attributes><![CDATA[%dw 2.0
+output application/java
+---
+{ headers: { "Retry-After": "5", "x-correlation-id": correlationId } }]]></ee:set-attributes>
+                </ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:RATE_LIMIT_EXCEEDED"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">429</ee:set-variable>
+                    <ee:set-variable variableName="retryable">true</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <!-- 502 / 503 / 504 ==================== -->
+        <on-error-propagate type="HTTP:CONNECTIVITY, HTTP:SERVICE_UNAVAILABLE,
+                                  ACME:DOWNSTREAM_UNAVAILABLE, DB:CONNECTIVITY"
+                            logException="true">
+            <ee:transform doc:name="503 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:DOWNSTREAM_UNAVAILABLE"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">503</ee:set-variable>
+                    <ee:set-variable variableName="retryable">true</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <on-error-propagate type="HTTP:TIMEOUT, ACME:DOWNSTREAM_TIMEOUT, DB:QUERY_EXECUTION"
+                            logException="true">
+            <ee:transform doc:name="504 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:DOWNSTREAM_TIMEOUT"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">504</ee:set-variable>
+                    <ee:set-variable variableName="retryable">true</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <on-error-propagate type="ACME:DATA_PLATFORM_ERROR, ACME:AI_SERVICE_ERROR"
+                            logException="true">
+            <ee:transform doc:name="502 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode"><![CDATA[%dw 2.0
+output application/java
+---
+if (error.errorType.identifier == "AI_SERVICE_ERROR") "AI:GENERATION_FAILED"
+else "DATA:QUERY_FAILED"]]></ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">502</ee:set-variable>
+                    <ee:set-variable variableName="retryable">true</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+
+        <!-- 500 - catch-all.  Deliberately last, and intentionally terse: an
+             unexpected error must never leak a stack trace, a SQL fragment or a
+             downstream message to a client. The correlation id is how support
+             finds the detail in the logs. -->
+        <on-error-propagate type="ANY" logException="true">
+            <logger level="ERROR" category="acme.error"
+                    message='#["unhandled_error correlationId=" ++ correlationId
+                              ++ " type=" ++ (error.errorType.identifier default "UNKNOWN")
+                              ++ " description=" ++ (error.description default "")]' />
+            <ee:transform doc:name="500 payload">
+                <ee:message><ee:set-payload resource="dw/error-response.dwl" /></ee:message>
+                <ee:variables>
+                    <ee:set-variable variableName="errorCode">"PLATFORM:INTERNAL_ERROR"</ee:set-variable>
+                    <ee:set-variable variableName="httpStatus">500</ee:set-variable>
+                    <ee:set-variable variableName="retryable">false</ee:set-variable>
+                </ee:variables>
+            </ee:transform>
+        </on-error-propagate>
+    </error-handler>
+</mule>
