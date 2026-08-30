@@ -1,0 +1,111 @@
+-- =============================================================================
+-- 06-02  RAW -> STAGING : ORDERS, ORDER ITEMS, PRODUCTS      [portable]
+-- =============================================================================
+-- Money is cast with an explicit scale and never left as a float.  Orders whose
+-- amount is negative or whose date is in the future are kept but stamped FAIL:
+-- excluding them here would hide a genuine upstream defect, and the point of a
+-- data platform is to make that defect visible, not to launder it.
+-- =============================================================================
+
+DELETE FROM ACME_EDP.STAGING.STG_SALES_ORDER;
+
+INSERT INTO ACME_EDP.STAGING.STG_SALES_ORDER (
+    ORDER_BK, CUSTOMER_BK, ORDER_DATE, ORDER_STATUS, CHANNEL, CURRENCY_CODE,
+    ORDER_AMOUNT, DISCOUNT_AMOUNT, SHIPPING_AMOUNT, NET_AMOUNT,
+    SOURCE_CREATED_AT, SOURCE_UPDATED_AT, DQ_STATUS, DQ_FAILED_RULES,
+    _BATCH_ID, _CORRELATION_ID, _LOADED_AT
+)
+WITH typed AS (
+    SELECT
+        TRIM(ORDER_ID)                                   AS ORDER_BK,
+        TRIM(CUSTOMER_ID)                                AS CUSTOMER_BK,
+        TRY_CAST(ORDER_DATE AS DATE)                     AS ORDER_DATE,
+        UPPER(TRIM(ORDER_STATUS))                        AS ORDER_STATUS,
+        UPPER(TRIM(CHANNEL))                             AS CHANNEL,
+        UPPER(COALESCE(CURRENCY, 'USD'))                 AS CURRENCY_CODE,
+        TRY_CAST(ORDER_AMOUNT AS NUMBER(18,2))           AS ORDER_AMOUNT,
+        COALESCE(TRY_CAST(DISCOUNT_AMOUNT AS NUMBER(18,2)), 0) AS DISCOUNT_AMOUNT,
+        COALESCE(TRY_CAST(SHIPPING_AMOUNT AS NUMBER(18,2)), 0) AS SHIPPING_AMOUNT,
+        TRY_CAST(CREATED_AT AS TIMESTAMP_NTZ)            AS SOURCE_CREATED_AT,
+        TRY_CAST(UPDATED_AT AS TIMESTAMP_NTZ)            AS SOURCE_UPDATED_AT,
+        _BATCH_ID, _CORRELATION_ID
+    FROM ACME_EDP.RAW.RAW_OMS_ORDER
+),
+validated AS (
+    SELECT t.*,
+        (ORDER_BK IS NULL OR ORDER_BK = '')                       AS FAIL_MISSING_KEY,      -- DQ-O-001
+        (ORDER_AMOUNT IS NULL OR ORDER_AMOUNT < 0)                AS FAIL_AMOUNT,           -- DQ-O-002
+        (ORDER_DATE IS NULL OR ORDER_DATE > CURRENT_DATE)         AS FAIL_DATE,             -- DQ-O-003
+        (ORDER_STATUS NOT IN ('COMPLETED','SHIPPED','CANCELLED','RETURNED','PENDING'))
+                                                                  AS FAIL_STATUS,           -- DQ-O-004
+        (CURRENCY_CODE NOT IN ('USD','EUR','GBP','CAD'))          AS FAIL_CURRENCY          -- DQ-O-005
+    FROM typed t
+)
+SELECT
+    ORDER_BK, CUSTOMER_BK, ORDER_DATE, ORDER_STATUS, CHANNEL, CURRENCY_CODE,
+    ORDER_AMOUNT, DISCOUNT_AMOUNT, SHIPPING_AMOUNT,
+    ROUND(COALESCE(ORDER_AMOUNT,0) - COALESCE(DISCOUNT_AMOUNT,0), 2) AS NET_AMOUNT,
+    SOURCE_CREATED_AT, SOURCE_UPDATED_AT,
+    CASE WHEN FAIL_MISSING_KEY OR FAIL_AMOUNT OR FAIL_DATE THEN 'FAIL'
+         WHEN FAIL_STATUS OR FAIL_CURRENCY THEN 'WARN'
+         ELSE 'PASS' END AS DQ_STATUS,
+    NULLIF(TRIM(
+        CASE WHEN FAIL_MISSING_KEY THEN 'DQ-O-001 ' ELSE '' END ||
+        CASE WHEN FAIL_AMOUNT      THEN 'DQ-O-002 ' ELSE '' END ||
+        CASE WHEN FAIL_DATE        THEN 'DQ-O-003 ' ELSE '' END ||
+        CASE WHEN FAIL_STATUS      THEN 'DQ-O-004 ' ELSE '' END ||
+        CASE WHEN FAIL_CURRENCY    THEN 'DQ-O-005 ' ELSE '' END), '') AS DQ_FAILED_RULES,
+    _BATCH_ID, _CORRELATION_ID, CURRENT_TIMESTAMP AS _LOADED_AT
+FROM validated
+WHERE ORDER_BK IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (PARTITION BY ORDER_BK
+                           ORDER BY SOURCE_UPDATED_AT DESC NULLS LAST) = 1;
+
+-- ----------------------------------------------------------------- order items
+DELETE FROM ACME_EDP.STAGING.STG_SALES_ORDER_ITEM;
+
+INSERT INTO ACME_EDP.STAGING.STG_SALES_ORDER_ITEM (
+    ORDER_ITEM_BK, ORDER_BK, PRODUCT_BK, SKU, QUANTITY, UNIT_PRICE, LINE_AMOUNT,
+    CURRENCY_CODE, DQ_STATUS, _BATCH_ID, _LOADED_AT
+)
+SELECT
+    TRIM(ORDER_ITEM_ID)                                AS ORDER_ITEM_BK,
+    TRIM(ORDER_ID)                                     AS ORDER_BK,
+    TRIM(PRODUCT_ID)                                   AS PRODUCT_BK,
+    TRIM(SKU)                                          AS SKU,
+    TRY_CAST(QUANTITY AS NUMBER(12,0))                 AS QUANTITY,
+    TRY_CAST(UNIT_PRICE AS NUMBER(18,2))               AS UNIT_PRICE,
+    TRY_CAST(LINE_AMOUNT AS NUMBER(18,2))              AS LINE_AMOUNT,
+    UPPER(COALESCE(CURRENCY,'USD'))                    AS CURRENCY_CODE,
+    CASE
+        WHEN TRY_CAST(QUANTITY AS NUMBER(12,0)) IS NULL
+          OR TRY_CAST(QUANTITY AS NUMBER(12,0)) <= 0 THEN 'FAIL'          -- DQ-OI-001
+        -- DQ-OI-002 arithmetic consistency: line = qty * price (1 cent tolerance)
+        WHEN ABS(COALESCE(TRY_CAST(LINE_AMOUNT AS NUMBER(18,2)),0)
+               - COALESCE(TRY_CAST(QUANTITY AS NUMBER(12,0)),0)
+               * COALESCE(TRY_CAST(UNIT_PRICE AS NUMBER(18,2)),0)) > 0.01 THEN 'WARN'
+        ELSE 'PASS'
+    END                                                AS DQ_STATUS,
+    _BATCH_ID, CURRENT_TIMESTAMP AS _LOADED_AT
+FROM ACME_EDP.RAW.RAW_OMS_ORDER_ITEM
+WHERE ORDER_ITEM_ID IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (PARTITION BY ORDER_ITEM_ID ORDER BY ORDER_ID) = 1;
+
+-- -------------------------------------------------------------------- products
+DELETE FROM ACME_EDP.STAGING.STG_PRODUCT;
+
+INSERT INTO ACME_EDP.STAGING.STG_PRODUCT (
+    PRODUCT_BK, SKU, PRODUCT_NAME, CATEGORY, SUB_CATEGORY, BRAND, UNIT_PRICE,
+    CURRENCY_CODE, IS_ACTIVE, LAUNCH_DATE, DQ_STATUS, _BATCH_ID, _LOADED_AT
+)
+SELECT
+    TRIM(PRODUCT_ID), TRIM(SKU), TRIM(PRODUCT_NAME), TRIM(CATEGORY), TRIM(SUB_CATEGORY),
+    TRIM(BRAND), TRY_CAST(UNIT_PRICE AS NUMBER(18,2)), UPPER(COALESCE(CURRENCY,'USD')),
+    CASE WHEN LOWER(IS_ACTIVE) IN ('true','1','y','yes') THEN TRUE ELSE FALSE END,
+    TRY_CAST(LAUNCH_DATE AS DATE),
+    CASE WHEN PRODUCT_ID IS NULL OR TRY_CAST(UNIT_PRICE AS NUMBER(18,2)) IS NULL
+         THEN 'FAIL' ELSE 'PASS' END,
+    _BATCH_ID, CURRENT_TIMESTAMP
+FROM ACME_EDP.RAW.RAW_PIM_PRODUCT
+WHERE PRODUCT_ID IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (PARTITION BY PRODUCT_ID ORDER BY SKU) = 1;
