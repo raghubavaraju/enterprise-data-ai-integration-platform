@@ -1,0 +1,962 @@
+[
+  {
+    "contactId": "CTC-00001",
+    "customerId": "CRM-100001",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.berger@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00001-P",
+    "customerId": "CRM-100001",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1001",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00002",
+    "customerId": "CRM-100002",
+    "contactType": "EMAIL",
+    "contactValue": "omar.vogel@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00002-P",
+    "customerId": "CRM-100002",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1002",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00003",
+    "customerId": "CRM-100003",
+    "contactType": "EMAIL",
+    "contactValue": "idris.sato@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00003-P",
+    "customerId": "CRM-100003",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1003",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00004",
+    "customerId": "CRM-100004",
+    "contactType": "EMAIL",
+    "contactValue": "mei.adeyemi@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00004-P",
+    "customerId": "CRM-100004",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1004",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00005",
+    "customerId": "CRM-100005",
+    "contactType": "EMAIL",
+    "contactValue": "sofia.chen@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00005-P",
+    "customerId": "CRM-100005",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1005",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00006",
+    "customerId": "CRM-100006",
+    "contactType": "EMAIL",
+    "contactValue": "zara.berger@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00006-P",
+    "customerId": "CRM-100006",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1006",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00007",
+    "customerId": "CRM-100007",
+    "contactType": "EMAIL",
+    "contactValue": "elena.costa@example",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00007-P",
+    "customerId": "CRM-100007",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1007",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00008",
+    "customerId": "CRM-100008",
+    "contactType": "EMAIL",
+    "contactValue": "zara.lindqvist@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00008-P",
+    "customerId": "CRM-100008",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1008",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00009",
+    "customerId": "CRM-100009",
+    "contactType": "EMAIL",
+    "contactValue": "noah.sato@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00009-P",
+    "customerId": "CRM-100009",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1009",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00010",
+    "customerId": "CRM-100010",
+    "contactType": "EMAIL",
+    "contactValue": "noah.iyer@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00010-P",
+    "customerId": "CRM-100010",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1010",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00011",
+    "customerId": "CRM-100011",
+    "contactType": "EMAIL",
+    "contactValue": "idris.petrov@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00011-P",
+    "customerId": "CRM-100011",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1011",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00012",
+    "customerId": "CRM-100012",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.iyer@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00012-P",
+    "customerId": "CRM-100012",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1012",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00013",
+    "customerId": "CRM-100013",
+    "contactType": "EMAIL",
+    "contactValue": "hana.chen@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00013-P",
+    "customerId": "CRM-100013",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1013",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00014",
+    "customerId": "CRM-100014",
+    "contactType": "EMAIL",
+    "contactValue": "yuki.iyer@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00014-P",
+    "customerId": "CRM-100014",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1014",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00015",
+    "customerId": "CRM-100015",
+    "contactType": "EMAIL",
+    "contactValue": "kofi.hansen@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00015-P",
+    "customerId": "CRM-100015",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1015",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00016",
+    "customerId": "CRM-100016",
+    "contactType": "EMAIL",
+    "contactValue": "mei.rahman@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00016-P",
+    "customerId": "CRM-100016",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1016",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00017",
+    "customerId": "CRM-100017",
+    "contactType": "EMAIL",
+    "contactValue": "priya.sato@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00017-P",
+    "customerId": "CRM-100017",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1017",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00018",
+    "customerId": "CRM-100018",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.chen@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00018-P",
+    "customerId": "CRM-100018",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1018",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00019",
+    "customerId": "CRM-100019",
+    "contactType": "EMAIL",
+    "contactValue": "felix.haddad@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00019-P",
+    "customerId": "CRM-100019",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1019",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00020",
+    "customerId": "CRM-100020",
+    "contactType": "EMAIL",
+    "contactValue": "lina.tanaka@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00020-P",
+    "customerId": "CRM-100020",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1020",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00021",
+    "customerId": "CRM-100021",
+    "contactType": "EMAIL",
+    "contactValue": "sofia.costa@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00021-P",
+    "customerId": "CRM-100021",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1021",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00022",
+    "customerId": "CRM-100022",
+    "contactType": "EMAIL",
+    "contactValue": "lucas.alvarez@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00022-P",
+    "customerId": "CRM-100022",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1022",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00023",
+    "customerId": "CRM-100023",
+    "contactType": "EMAIL",
+    "contactValue": "arjun[at]example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00023-P",
+    "customerId": "CRM-100023",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1023",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00024",
+    "customerId": "CRM-100024",
+    "contactType": "EMAIL",
+    "contactValue": "diego.okafor@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00024-P",
+    "customerId": "CRM-100024",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1024",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00025",
+    "customerId": "CRM-100025",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.rahman@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00025-P",
+    "customerId": "CRM-100025",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1025",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00026",
+    "customerId": "CRM-100026",
+    "contactType": "EMAIL",
+    "contactValue": "aisha.rahman@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00026-P",
+    "customerId": "CRM-100026",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1026",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00027",
+    "customerId": "CRM-100027",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.haddad@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00027-P",
+    "customerId": "CRM-100027",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1027",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00028",
+    "customerId": "CRM-100028",
+    "contactType": "EMAIL",
+    "contactValue": "amara.alvarez@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00028-P",
+    "customerId": "CRM-100028",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1028",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00029",
+    "customerId": "CRM-100029",
+    "contactType": "EMAIL",
+    "contactValue": "ethan.okafor@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00029-P",
+    "customerId": "CRM-100029",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1029",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00030",
+    "customerId": "CRM-100030",
+    "contactType": "EMAIL",
+    "contactValue": "oliver.tanaka@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00030-P",
+    "customerId": "CRM-100030",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1030",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00031",
+    "customerId": "CRM-100031",
+    "contactType": "EMAIL",
+    "contactValue": "theo.tanaka@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00031-P",
+    "customerId": "CRM-100031",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1031",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00032",
+    "customerId": "CRM-100032",
+    "contactType": "EMAIL",
+    "contactValue": "aisha.diallo@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00032-P",
+    "customerId": "CRM-100032",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1032",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00033",
+    "customerId": "CRM-100033",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.rivera@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00033-P",
+    "customerId": "CRM-100033",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1033",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00034",
+    "customerId": "CRM-100034",
+    "contactType": "EMAIL",
+    "contactValue": "aisha.whitfield@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00034-P",
+    "customerId": "CRM-100034",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1034",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00035",
+    "customerId": "CRM-100035",
+    "contactType": "EMAIL",
+    "contactValue": "theo.farouk@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00035-P",
+    "customerId": "CRM-100035",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1035",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00036",
+    "customerId": "CRM-100036",
+    "contactType": "EMAIL",
+    "contactValue": "mei.rivera@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00036-P",
+    "customerId": "CRM-100036",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1036",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00037",
+    "customerId": "CRM-100037",
+    "contactType": "EMAIL",
+    "contactValue": "sofia.adeyemi@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00037-P",
+    "customerId": "CRM-100037",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1037",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00038",
+    "customerId": "CRM-100038",
+    "contactType": "EMAIL",
+    "contactValue": "liam.novak@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00038-P",
+    "customerId": "CRM-100038",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1038",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00039",
+    "customerId": "CRM-100039",
+    "contactType": "EMAIL",
+    "contactValue": "liam.caldwell@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00039-P",
+    "customerId": "CRM-100039",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1039",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00040",
+    "customerId": "CRM-100040",
+    "contactType": "EMAIL",
+    "contactValue": "hana.sato@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00040-P",
+    "customerId": "CRM-100040",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1040",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00041",
+    "customerId": "CRM-100041",
+    "contactType": "EMAIL",
+    "contactValue": "lina.chen@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00041-P",
+    "customerId": "CRM-100041",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1041",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00042",
+    "customerId": "CRM-100042",
+    "contactType": "EMAIL",
+    "contactValue": "mateo.alvarez@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00042-P",
+    "customerId": "CRM-100042",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1042",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00043",
+    "customerId": "CRM-100043",
+    "contactType": "EMAIL",
+    "contactValue": "theo.iyer@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00043-P",
+    "customerId": "CRM-100043",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1043",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00044",
+    "customerId": "CRM-100044",
+    "contactType": "EMAIL",
+    "contactValue": "marta.adeyemi@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00044-P",
+    "customerId": "CRM-100044",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1044",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00045",
+    "customerId": "CRM-100045",
+    "contactType": "EMAIL",
+    "contactValue": "ravi.lindqvist@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00045-P",
+    "customerId": "CRM-100045",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1045",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00046",
+    "customerId": "CRM-100046",
+    "contactType": "EMAIL",
+    "contactValue": "freya.farouk@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00046-P",
+    "customerId": "CRM-100046",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1046",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00047",
+    "customerId": "CRM-100047",
+    "contactType": "EMAIL",
+    "contactValue": "yuki.diallo@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00047-P",
+    "customerId": "CRM-100047",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1047",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00048",
+    "customerId": "CRM-100048",
+    "contactType": "EMAIL",
+    "contactValue": "ravi.adeyemi@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00048-P",
+    "customerId": "CRM-100048",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1048",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00049",
+    "customerId": "CRM-100049",
+    "contactType": "EMAIL",
+    "contactValue": "clara.sato@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00049-P",
+    "customerId": "CRM-100049",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1049",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00050",
+    "customerId": "CRM-100050",
+    "contactType": "EMAIL",
+    "contactValue": "arjun.rahman@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00050-P",
+    "customerId": "CRM-100050",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1050",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00051",
+    "customerId": "CRM-100051",
+    "contactType": "EMAIL",
+    "contactValue": "sofia.whitfield@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00051-P",
+    "customerId": "CRM-100051",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1051",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00052",
+    "customerId": "CRM-100052",
+    "contactType": "EMAIL",
+    "contactValue": "amara.iyer@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00052-P",
+    "customerId": "CRM-100052",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1052",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00053",
+    "customerId": "CRM-100053",
+    "contactType": "EMAIL",
+    "contactValue": "freya.novak@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00053-P",
+    "customerId": "CRM-100053",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1053",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00054",
+    "customerId": "CRM-100054",
+    "contactType": "EMAIL",
+    "contactValue": "sofia.hansen@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00054-P",
+    "customerId": "CRM-100054",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1054",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00055",
+    "customerId": "CRM-100055",
+    "contactType": "EMAIL",
+    "contactValue": "diego.kowalski@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00055-P",
+    "customerId": "CRM-100055",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1055",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00056",
+    "customerId": "CRM-100056",
+    "contactType": "EMAIL",
+    "contactValue": "hana.kowalski@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00056-P",
+    "customerId": "CRM-100056",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1056",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00057",
+    "customerId": "CRM-100057",
+    "contactType": "EMAIL",
+    "contactValue": "omar.okafor@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00057-P",
+    "customerId": "CRM-100057",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1057",
+    "isVerified": false,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00058",
+    "customerId": "CRM-100058",
+    "contactType": "EMAIL",
+    "contactValue": "clara.farouk@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00058-P",
+    "customerId": "CRM-100058",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1058",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00059",
+    "customerId": "CRM-100059",
+    "contactType": "EMAIL",
+    "contactValue": "marta.whitfield@example.com",
+    "isVerified": true,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00059-P",
+    "customerId": "CRM-100059",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1059",
+    "isVerified": true,
+    "isPrimary": false
+  },
+  {
+    "contactId": "CTC-00060",
+    "customerId": "CRM-100060",
+    "contactType": "EMAIL",
+    "contactValue": "aisha.berger@example.com",
+    "isVerified": false,
+    "isPrimary": true
+  },
+  {
+    "contactId": "CTC-00060-P",
+    "customerId": "CRM-100060",
+    "contactType": "PHONE",
+    "contactValue": "+1-402-555-1060",
+    "isVerified": false,
+    "isPrimary": false
+  }
+]
