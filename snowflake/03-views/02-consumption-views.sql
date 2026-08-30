@@ -1,0 +1,111 @@
+-- =============================================================================
+-- 03-02  Consumption views      [portable]
+-- =============================================================================
+-- The API never selects from a base table.  Every read path goes through a view
+-- so that a column rename, a repartition or a masking-policy change is a change
+-- to one object, not to a MuleSoft deployment.  This is the data-side half of
+-- the same argument that justifies API-led connectivity on the integration side:
+-- put a stable contract in front of a volatile implementation.
+-- =============================================================================
+
+-- Contract read by the Snowflake System API for GET /customers/{id}/360.
+CREATE OR REPLACE VIEW ACME_EDP.ANALYTICS.V_CUSTOMER_360_API AS
+SELECT
+    c.CUSTOMER_BK                         AS CUSTOMER_ID,
+    c.FULL_NAME, c.EMAIL, c.PHONE, c.BIRTH_DATE,
+    c.CUSTOMER_SEGMENT, c.PREFERRED_CHANNEL, c.MARKETING_OPT_IN, c.CUSTOMER_STATUS,
+    c.CUSTOMER_SINCE, c.TENURE_DAYS, c.PRIMARY_CITY, c.PRIMARY_STATE, c.PRIMARY_COUNTRY,
+    c.TOTAL_ORDERS, c.TOTAL_NET_REVENUE, c.AVG_ORDER_VALUE, c.ORDER_FREQUENCY_PER_YEAR,
+    c.LAST_ORDER_DATE, c.DAYS_SINCE_LAST_ORDER, c.REVENUE_LAST_365D, c.RETURN_RATE,
+    c.PRIMARY_ORDER_CHANNEL,
+    c.TOTAL_CASES, c.OPEN_CASES, c.CASES_LAST_90D, c.AVG_CSAT, c.AVG_RESOLUTION_HOURS,
+    c.TOP_CASE_TYPE,
+    c.LOYALTY_TIER, c.LOYALTY_STATUS, c.LOYALTY_POINTS_BALANCE, c.LOYALTY_ENROLLED_AT,
+    c.INTERACTIONS_LAST_90D, c.NEGATIVE_SIGNALS_90D, c.ENGAGEMENT_SCORE,
+    c.CUSTOMER_LIFETIME_VALUE, c.PREDICTED_CLV_12M, c.VALUE_TIER,
+    s.CHURN_PROBABILITY, s.CHURN_RISK_BAND, s.MODEL_NAME, s.MODEL_VERSION,
+    s.TOP_DRIVER_1, s.TOP_DRIVER_1_CONTRIB, s.TOP_DRIVER_2, s.TOP_DRIVER_2_CONTRIB,
+    s.TOP_DRIVER_3, s.TOP_DRIVER_3_CONTRIB,
+    c.DATA_COMPLETENESS_SCORE, c.CONTRIBUTING_SOURCES, c.AS_OF_TIMESTAMP
+FROM ACME_EDP.ANALYTICS.CUSTOMER_360 c
+LEFT JOIN ACME_EDP.AI.CUSTOMER_CHURN_SCORE s
+       ON s.CUSTOMER_BK = c.CUSTOMER_BK
+      AND s.SCORE_DATE = (SELECT MAX(SCORE_DATE) FROM ACME_EDP.AI.CUSTOMER_CHURN_SCORE
+                           WHERE CUSTOMER_BK = c.CUSTOMER_BK);
+
+-- Exactly the fields the AI layer is allowed to see.  Direct identifiers are
+-- absent by construction, not by a filter someone can forget: the model is
+-- grounded on behaviour, not on identity.  See ADR-004 and docs/ai-architecture.md.
+CREATE OR REPLACE VIEW ACME_EDP.AI.V_CUSTOMER_AI_CONTEXT AS
+SELECT
+    c.CUSTOMER_BK                         AS CUSTOMER_ID,
+    c.CUSTOMER_SEGMENT, c.VALUE_TIER, c.TENURE_DAYS,
+    c.TOTAL_ORDERS, c.TOTAL_NET_REVENUE, c.AVG_ORDER_VALUE, c.ORDER_FREQUENCY_PER_YEAR,
+    c.DAYS_SINCE_LAST_ORDER, c.REVENUE_LAST_365D, c.RETURN_RATE, c.PRIMARY_ORDER_CHANNEL,
+    c.TOTAL_CASES, c.OPEN_CASES, c.CASES_LAST_90D, c.AVG_CSAT, c.TOP_CASE_TYPE,
+    c.LOYALTY_TIER, c.LOYALTY_STATUS, c.LOYALTY_POINTS_BALANCE,
+    c.INTERACTIONS_LAST_90D, c.NEGATIVE_SIGNALS_90D, c.ENGAGEMENT_SCORE,
+    -- Trend features come from the feature store and not being recomputed:
+    -- the model explained its score using these exact values, so the narrative
+    -- must quote the same ones.
+    f.F_ORDER_TREND_RATIO                 AS ORDER_TREND_RATIO,
+    f.F_REVENUE_TREND_RATIO               AS REVENUE_TREND_RATIO,
+    f.F_SLA_BREACHES                      AS SLA_BREACHES,
+    s.CHURN_PROBABILITY, s.CHURN_RISK_BAND,
+    s.TOP_DRIVER_1, s.TOP_DRIVER_1_CONTRIB,
+    s.TOP_DRIVER_2, s.TOP_DRIVER_2_CONTRIB,
+    s.TOP_DRIVER_3, s.TOP_DRIVER_3_CONTRIB,
+    c.AS_OF_TIMESTAMP
+FROM ACME_EDP.ANALYTICS.CUSTOMER_360 c
+LEFT JOIN ACME_EDP.AI.CUSTOMER_CHURN_SCORE s
+       ON s.CUSTOMER_BK = c.CUSTOMER_BK
+      AND s.SCORE_DATE = (SELECT MAX(SCORE_DATE) FROM ACME_EDP.AI.CUSTOMER_CHURN_SCORE
+                           WHERE CUSTOMER_BK = c.CUSTOMER_BK)
+LEFT JOIN ACME_EDP.AI.CUSTOMER_FEATURES f
+       ON f.CUSTOMER_BK = c.CUSTOMER_BK
+      AND f.FEATURE_DATE = (SELECT MAX(FEATURE_DATE) FROM ACME_EDP.AI.CUSTOMER_FEATURES
+                             WHERE CUSTOMER_BK = c.CUSTOMER_BK);
+
+-- Recent support narrative used to ground summaries and sentiment.  Truncated
+-- and free of contact details: the model needs the shape of the complaint, not
+-- the customer's phone number.
+CREATE OR REPLACE VIEW ACME_EDP.AI.V_CUSTOMER_SUPPORT_CONTEXT AS
+SELECT
+    CUSTOMER_BK                           AS CUSTOMER_ID,
+    CASE_BK                               AS CASE_ID,
+    CASE_TYPE, PRIORITY, STATUS, CHANNEL,
+    CAST(OPENED_AT AS DATE)               AS OPENED_DATE,
+    RESOLUTION_HOURS, CSAT_SCORE, REOPEN_COUNT, IS_SLA_BREACHED,
+    LEFT(DESCRIPTION, 500)                AS DESCRIPTION_EXCERPT,
+    LEFT(COALESCE(RESOLUTION_NOTES, ''), 300) AS RESOLUTION_EXCERPT
+FROM ACME_EDP.CORE.SUPPORT_CASE
+WHERE OPENED_AT >= CAST(CURRENT_DATE - 365 AS TIMESTAMP);
+
+CREATE OR REPLACE VIEW ACME_EDP.ANALYTICS.V_CUSTOMER_ORDERS_API AS
+SELECT
+    o.CUSTOMER_BK      AS CUSTOMER_ID,
+    o.ORDER_BK         AS ORDER_ID,
+    o.ORDER_DATE, o.ORDER_STATUS, o.CHANNEL, o.CURRENCY_CODE,
+    o.ORDER_AMOUNT, o.DISCOUNT_AMOUNT, o.SHIPPING_AMOUNT, o.NET_AMOUNT,
+    COUNT(i.ORDER_ITEM_BK)      AS LINE_COUNT,
+    SUM(COALESCE(i.QUANTITY,0)) AS TOTAL_UNITS
+FROM ACME_EDP.CORE.SALES_ORDER o
+LEFT JOIN ACME_EDP.CORE.SALES_ORDER_ITEM i ON i.ORDER_BK = o.ORDER_BK
+GROUP BY o.CUSTOMER_BK, o.ORDER_BK, o.ORDER_DATE, o.ORDER_STATUS, o.CHANNEL,
+         o.CURRENCY_CODE, o.ORDER_AMOUNT, o.DISCOUNT_AMOUNT, o.SHIPPING_AMOUNT, o.NET_AMOUNT;
+
+CREATE OR REPLACE VIEW ACME_EDP.ANALYTICS.V_CUSTOMER_CASES_API AS
+SELECT
+    CUSTOMER_BK AS CUSTOMER_ID, CASE_BK AS CASE_ID, CASE_TYPE, PRIORITY, SUBJECT,
+    STATUS, CHANNEL, OPENED_AT, RESOLVED_AT, RESOLUTION_HOURS, CSAT_SCORE,
+    REOPEN_COUNT, IS_SLA_BREACHED
+FROM ACME_EDP.CORE.SUPPORT_CASE;
+
+-- Operational health, read by the observability dashboards.
+CREATE OR REPLACE VIEW ACME_EDP.GOVERNANCE.V_DQ_SCORECARD AS
+SELECT
+    r.RULE_ID, r.RULE_NAME, r.DIMENSION, r.TARGET_TABLE, r.SEVERITY, r.THRESHOLD_PCT,
+    x.EXECUTED_AT, x.ROWS_EVALUATED, x.ROWS_FAILED, x.FAIL_PCT, x.STATUS
+FROM ACME_EDP.GOVERNANCE.DQ_RULE r
+LEFT JOIN ACME_EDP.GOVERNANCE.DQ_RESULT x ON x.RULE_ID = r.RULE_ID
+WHERE r.IS_ACTIVE = TRUE;
