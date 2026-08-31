@@ -1,0 +1,51 @@
+# =============================================================================
+# Customer Experience API - development
+# =============================================================================
+# Non-sensitive settings only.  Anything secret lives in dev-secure.yaml,
+# encrypted, and is referenced as ${secure::key}.  The decryption key is
+# supplied at runtime and never stored anywhere in this repository.
+# =============================================================================
+
+app:
+  name: customer-experience-api
+  version: 1.0.0
+
+http:
+  port: "8081"
+
+api:
+  id: "${anypoint.api.id}"          # supplied by the pipeline per environment
+  mainFlow: customer-experience-api-main
+
+processApi:
+  host: customer-360-process-api-dev.eu1.cloudhub.io
+  port: "443"
+  # Timeout budget: the experience API promises p95 < 800 ms, so it cannot wait
+  # longer than this for its single downstream call and still keep the promise.
+  timeoutMs: 5000
+
+aiProcessApi:
+  host: customer-intelligence-process-api-dev.eu1.cloudhub.io
+  port: "443"
+  # Generative calls are slow by nature. A separate, much larger budget - which
+  # is one of the reasons the two process APIs are separate applications.
+  timeoutMs: 25000
+
+idempotency:
+  ttlMinutes: 15
+
+circuitBreaker:
+  failureThreshold: 5
+  resetSeconds: 30
+
+tls:
+  truststore:
+    path: tls/dev-truststore.jks
+  keystore:
+    path: tls/dev-keystore.jks
+
+logging:
+  level: DEBUG
+  # Payload logging is off in every environment including dev: development data
+  # is refreshed from production shapes and the habit is what matters.
+  logPayloads: false

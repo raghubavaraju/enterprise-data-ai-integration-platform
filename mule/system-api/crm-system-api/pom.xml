@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.acmeretail.integration</groupId>
+    <artifactId>crm-system-api</artifactId>
+    <version>1.0.0</version>
+    <packaging>mule-application</packaging>
+    <name>CRM System API</name>
+    <description>
+        Experience-layer API for the Acme Retail service-desk application.
+    </description>
+
+    <properties>
+        <app.runtime>4.6.0</app.runtime>
+        <mule.maven.plugin.version>4.1.1</mule.maven.plugin.version>
+        <munit.version>3.1.0</munit.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.mule.tools.maven</groupId>
+                <artifactId>mule-maven-plugin</artifactId>
+                <version>${mule.maven.plugin.version}</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <classifier>mule-application</classifier>
+                    <!--
+                      Deployment target is supplied by the pipeline profile, never
+                      hard-coded here. Credentials come from CI secrets and are
+                      referenced as properties so that this file can be public.
+                    -->
+                    <cloudhub2Deployment>
+                        <uri>https://anypoint.mulesoft.com</uri>
+                        <provider>MC</provider>
+                        <environment>${anypoint.environment}</environment>
+                        <target>${anypoint.target}</target>
+                        <muleVersion>${app.runtime}</muleVersion>
+                        <connectedAppClientId>${anypoint.client.id}</connectedAppClientId>
+                        <connectedAppClientSecret>${anypoint.client.secret}</connectedAppClientSecret>
+                        <connectedAppGrantType>client_credentials</connectedAppGrantType>
+                        <applicationName>${anypoint.appName}</applicationName>
+                        <replicas>2</replicas>
+                        <vCores>0.2</vCores>
+                        <properties>
+                            <mule.env>${mule.env}</mule.env>
+                            <anypoint.platform.client_id>${anypoint.platform.client_id}</anypoint.platform.client_id>
+                        </properties>
+                        <secureProperties>
+                            <!-- Decryption key injected at deploy time; never stored. -->
+                            <secure.key>${secure.key}</secure.key>
+                        </secureProperties>
+                    </cloudhub2Deployment>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>com.mulesoft.munit.tools</groupId>
+                <artifactId>munit-maven-plugin</artifactId>
+                <version>${munit.version}</version>
+                <executions>
+                    <execution>
+                        <id>test</id>
+                        <phase>test</phase>
+                        <goals><goal>test</goal><goal>coverage-report</goal></goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <coverage>
+                        <runCoverage>true</runCoverage>
+                        <failBuild>true</failBuild>
+                        <requiredApplicationCoverage>80</requiredApplicationCoverage>
+                        <requiredResourceCoverage>75</requiredResourceCoverage>
+                        <requiredFlowCoverage>80</requiredFlowCoverage>
+                        <formats><format>html</format><format>console</format></formats>
+                    </coverage>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.mule.connectors</groupId>
+            <artifactId>mule-http-connector</artifactId>
+            <version>1.9.3</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-apikit-module</artifactId>
+            <version>1.9.2</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.mulesoft.modules</groupId>
+            <artifactId>mule-secure-configuration-property-module</artifactId>
+            <version>1.2.7</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-validation-module</artifactId>
+            <version>2.0.3</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.mule.modules</groupId>
+            <artifactId>mule-objectstore-connector</artifactId>
+            <version>1.2.2</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.mulesoft.anypoint</groupId>
+            <artifactId>mule-api-gateway-module</artifactId>
+            <version>1.2.3</version>
+            <classifier>mule-plugin</classifier>
+        </dependency>
+        <!-- API specification pulled from Exchange, not copied into the project.
+             The contract has one home; the implementation depends on it. -->
+        <dependency>
+            <groupId>${anypoint.orgId}</groupId>
+            <artifactId>crm-system-api</artifactId>
+            <version>1.0.0</version>
+            <classifier>raml</classifier>
+            <type>zip</type>
+        </dependency>
+        <dependency>
+            <groupId>com.mulesoft.munit</groupId>
+            <artifactId>munit-runner</artifactId>
+            <version>${munit.version}</version>
+            <classifier>mule-plugin</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.mulesoft.munit</groupId>
+            <artifactId>munit-tools</artifactId>
+            <version>${munit.version}</version>
+            <classifier>mule-plugin</classifier>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>anypoint-exchange-v3</id>
+            <name>Anypoint Exchange</name>
+            <url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+            <layout>default</layout>
+        </repository>
+        <repository>
+            <id>mulesoft-releases</id>
+            <name>MuleSoft Releases</name>
+            <url>https://repository.mulesoft.org/releases/</url>
+            <layout>default</layout>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>mulesoft-releases</id>
+            <url>https://repository.mulesoft.org/releases/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <mule.env>dev</mule.env>
+                <anypoint.environment>Development</anypoint.environment>
+                <anypoint.appName>acme-crm-system-api-dev</anypoint.appName>
+            </properties>
+        </profile>
+        <profile>
+            <id>uat</id>
+            <properties>
+                <mule.env>uat</mule.env>
+                <anypoint.environment>UAT</anypoint.environment>
+                <anypoint.appName>acme-crm-system-api-uat</anypoint.appName>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <mule.env>prod</mule.env>
+                <anypoint.environment>Production</anypoint.environment>
+                <anypoint.appName>acme-crm-system-api</anypoint.appName>
+            </properties>
+        </profile>
+    </profiles>
+</project>

@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit
+        http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      Customer 360 Process API  (process layer)
+      ==========================================================================
+      Owns the business process: orchestration across system APIs, enrichment,
+      and - the part that matters most in production - the degradation policy.
+
+      A Customer 360 assembled from five systems will, on any given day, have one
+      of them unavailable. Three possible behaviours:
+
+        (a) fail the whole request         unacceptable: an agent with a customer
+                                           on the phone gets a blank screen
+        (b) silently return partial data   worse: the agent cannot tell that
+                                           "no orders" means "no orders"
+        (c) return what is available, name what is missing, and say why
+
+      This flow does (c). That is why the response contract carries `partial` and
+      `degradedFields`, and why they are in the published specification rather
+      than being bolted on later.
+
+      Python counterpart: services/gateway/process_layer.py
+    -->
+
+    <http:listener-config name="process-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${http.port}"
+                                  protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:listener-config>
+
+    <apikit:config name="customer-360-process-api-config"
+                   raml="resource::${anypoint.orgId}:customer-360-process-api:1.0.0:raml:zip:customer-360-process-api.raml"
+                   outboundHeadersMapName="outboundHeaders"
+                   httpStatusVarName="httpStatus" />
+
+    <http:request-config name="snowflake-system-api-config"
+                         responseTimeout="${snowflakeApi.timeoutMs}">
+        <http:request-connection host="${snowflakeApi.host}" port="${snowflakeApi.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:request-config>
+
+    <http:request-config name="ai-service-config" responseTimeout="${aiService.timeoutMs}">
+        <http:request-connection host="${aiService.host}" port="${aiService.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context">
+            <!--
+              Bounded connection pool towards the AI service. This is the bulkhead:
+              a traffic spike on Customer 360 must not be able to open an unbounded
+              number of connections to a paid provider.
+            -->
+            <http:client-socket-properties>
+                <http:tcp-client-socket-properties connectionTimeout="${aiService.connectTimeoutMs}" />
+            </http:client-socket-properties>
+        </http:request-connection>
+    </http:request-config>
+
+    <!-- ===================================================================
+         Main listener + router
+         =================================================================== -->
+    <flow name="customer-360-process-api-main">
+        <http:listener config-ref="process-http-listener-config" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="customer-360-process-api-config" />
+        <error-handler ref="global-error-handler" />
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/360
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\360:customer-360-process-api-config">
+
+        <set-variable variableName="customerId" value="#[attributes.uriParams.customerId]" />
+        <set-variable variableName="degradedFields" value="#[[]]"
+                      doc:name="Initialise degradation log" />
+
+        <!--
+          The core profile is the only hard dependency. Without it there is no
+          customer to describe, so a failure here is a real 404 or 503 rather
+          than something to degrade around.
+        -->
+        <http:request method="GET" config-ref="snowflake-system-api-config"
+                      path="/api/v1/snowflake/customers/{customerId}/360"
+                      target="core" doc:name="Snowflake System API - Customer 360">
+            <http:uri-params><![CDATA[#[{customerId: vars.customerId}]]]></http:uri-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <reconnect frequency="200" count="2" />
+        </http:request>
+
+        <!--
+          Everything else is fetched CONCURRENTLY. Sequential orchestration would
+          make this endpoint as slow as the sum of its dependencies rather than
+          as slow as its slowest one, and it carries an 800 ms p95 target.
+
+          Each route has its own on-error-continue: scatter-gather aggregates
+          failures into a composite error otherwise, which would take the whole
+          response down for one missing loyalty record.
+        -->
+        <scatter-gather doc:name="Fetch orders, cases and churn concurrently"
+                        maxConcurrency="4" target="parts">
+            <route>
+                <try>
+                    <http:request method="GET" config-ref="snowflake-system-api-config"
+                                  path="/api/v1/snowflake/customers/{customerId}/orders"
+                                  doc:name="Orders">
+                        <http:uri-params><![CDATA[#[{customerId: vars.customerId}]]]></http:uri-params>
+                        <http:query-params><![CDATA[#[{limit: attributes.queryParams.orderLimit default 10}]]]></http:query-params>
+                        <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                    </http:request>
+                    <error-handler>
+                        <!--
+                          on-error-CONTINUE, not propagate: this route SUCCEEDS
+                          with an empty result and the failure is recorded. The
+                          flow as a whole must still return a usable payload.
+                        -->
+                        <on-error-continue type="ANY" logException="true">
+                            <set-variable variableName="degradedFields"
+                                          value="#[vars.degradedFields + {
+                                              field: 'orders',
+                                              dependency: 'snowflake',
+                                              errorCode: error.errorType.identifier,
+                                              reason: error.description default 'unavailable'
+                                          }]" />
+                            <set-payload value="#[{data: [], pagination: null}]" />
+                        </on-error-continue>
+                    </error-handler>
+                </try>
+            </route>
+            <route>
+                <try>
+                    <http:request method="GET" config-ref="snowflake-system-api-config"
+                                  path="/api/v1/snowflake/customers/{customerId}/cases"
+                                  doc:name="Support cases">
+                        <http:uri-params><![CDATA[#[{customerId: vars.customerId}]]]></http:uri-params>
+                        <http:query-params><![CDATA[#[{limit: 10}]]]></http:query-params>
+                        <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                    </http:request>
+                    <error-handler>
+                        <on-error-continue type="ANY" logException="true">
+                            <set-variable variableName="degradedFields"
+                                          value="#[vars.degradedFields + {
+                                              field: 'support', dependency: 'snowflake',
+                                              errorCode: error.errorType.identifier,
+                                              reason: error.description default 'unavailable'
+                                          }]" />
+                            <set-payload value="#[{data: []}]" />
+                        </on-error-continue>
+                    </error-handler>
+                </try>
+            </route>
+            <route>
+                <try>
+                    <http:request method="GET" config-ref="snowflake-system-api-config"
+                                  path="/api/v1/snowflake/customers/{customerId}/churn-risk"
+                                  doc:name="Churn score">
+                        <http:uri-params><![CDATA[#[{customerId: vars.customerId}]]]></http:uri-params>
+                        <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                    </http:request>
+                    <error-handler>
+                        <!--
+                          A 404 here means "not scored yet", which is a fact
+                          about the customer instead of an outage. It is handled
+                          separately so it is NOT reported as a degraded field -
+                          crying outage over an absent record is how a partial
+                          flag becomes noise that operations learns to ignore.
+                        -->
+                        <on-error-continue type="HTTP:NOT_FOUND" logException="false">
+                            <set-payload value="#[null]" />
+                        </on-error-continue>
+                        <on-error-continue type="ANY" logException="true">
+                            <set-variable variableName="degradedFields"
+                                          value="#[vars.degradedFields + {
+                                              field: 'churnRisk', dependency: 'snowflake',
+                                              errorCode: error.errorType.identifier,
+                                              reason: error.description default 'unavailable'
+                                          }]" />
+                            <set-payload value="#[null]" />
+                        </on-error-continue>
+                    </error-handler>
+                </try>
+            </route>
+        </scatter-gather>
+
+        <!-- Optional, opt-in, and always allowed to fail: generative insight is
+             an enhancement to the response, never a precondition for it. -->
+        <choice doc:name="AI requested?">
+            <when expression="#[attributes.queryParams.includeAi default false]">
+                <try>
+                    <http:request method="GET" config-ref="ai-service-config"
+                                  path="/api/v1/customers/{customerId}/insights"
+                                  target="aiInsights" doc:name="AI service">
+                        <http:uri-params><![CDATA[#[{customerId: vars.customerId}]]]></http:uri-params>
+                        <http:query-params><![CDATA[#[{types: "SUMMARY,CHURN_EXPLANATION"}]]]></http:query-params>
+                        <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+                        <reconnect frequency="0" count="0" />
+                    </http:request>
+                    <error-handler>
+                        <on-error-continue type="ANY" logException="true">
+                            <set-variable variableName="degradedFields"
+                                          value="#[vars.degradedFields + {
+                                              field: 'aiInsights', dependency: 'ai-service',
+                                              errorCode: error.errorType.identifier,
+                                              reason: error.description default 'unavailable'
+                                          }]" />
+                            <set-variable variableName="aiInsights" value="#[null]" />
+                        </on-error-continue>
+                    </error-handler>
+                </try>
+            </when>
+            <otherwise>
+                <set-variable variableName="aiInsights" value="#[null]" />
+            </otherwise>
+        </choice>
+
+        <ee:transform doc:name="Assemble Customer 360">
+            <ee:message><ee:set-payload resource="dw/customer-360-assemble.dwl" /></ee:message>
+        </ee:transform>
+
+        <logger level="INFO" category="acme.process.customer360"
+                message='#["customer_360_assembled customerId=" ++ vars.customerId
+                          ++ " partial=" ++ (sizeOf(vars.degradedFields) > 0)
+                          ++ " degraded=" ++ ((vars.degradedFields map $.field) joinBy ",")
+                          ++ " correlationId=" ++ correlationId]' />
+    </flow>
+</mule>

@@ -1,0 +1,3210 @@
+[
+  {
+    "interactionId": "INT-400001",
+    "customerId": "CRM-100002",
+    "interactionType": "PROMO_CLICK",
+    "channel": "STORE",
+    "interactionTs": "2025-08-14T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400002",
+    "customerId": "CRM-100002",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-03-05T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400003",
+    "customerId": "CRM-100002",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-03-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400004",
+    "customerId": "CRM-100002",
+    "interactionType": "PROMO_CLICK",
+    "channel": "STORE",
+    "interactionTs": "2025-08-25T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400005",
+    "customerId": "CRM-100002",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-05-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400006",
+    "customerId": "CRM-100002",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-14T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400007",
+    "customerId": "CRM-100002",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2026-06-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400008",
+    "customerId": "CRM-100002",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2025-08-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400009",
+    "customerId": "CRM-100002",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-07-23T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400010",
+    "customerId": "CRM-100003",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-07-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400011",
+    "customerId": "CRM-100003",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-11T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400012",
+    "customerId": "CRM-100003",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-07-10T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400013",
+    "customerId": "CRM-100003",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-09T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400014",
+    "customerId": "CRM-100003",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400015",
+    "customerId": "CRM-100003",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-23T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400016",
+    "customerId": "CRM-100003",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-05-25T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400017",
+    "customerId": "CRM-100003",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-22T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400018",
+    "customerId": "CRM-100004",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-03-01T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400019",
+    "customerId": "CRM-100004",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-05T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400020",
+    "customerId": "CRM-100004",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400021",
+    "customerId": "CRM-100004",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-08-19T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400022",
+    "customerId": "CRM-100004",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-09T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400023",
+    "customerId": "CRM-100004",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-03-06T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400024",
+    "customerId": "CRM-100004",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-03-29T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400025",
+    "customerId": "CRM-100004",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400026",
+    "customerId": "CRM-100004",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-10-14T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400027",
+    "customerId": "CRM-100004",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-07-12T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400028",
+    "customerId": "CRM-100004",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-01-03T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400029",
+    "customerId": "CRM-100005",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-01-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400030",
+    "customerId": "CRM-100005",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2025-10-23T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400031",
+    "customerId": "CRM-100005",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-04-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400032",
+    "customerId": "CRM-100005",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-22T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400033",
+    "customerId": "CRM-100005",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-07T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400034",
+    "customerId": "CRM-100005",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-13T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400035",
+    "customerId": "CRM-100005",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-02-03T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400036",
+    "customerId": "CRM-100005",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-02-09T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400037",
+    "customerId": "CRM-100005",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400038",
+    "customerId": "CRM-100005",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-12-02T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400039",
+    "customerId": "CRM-100005",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-18T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400040",
+    "customerId": "CRM-100006",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-24T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400041",
+    "customerId": "CRM-100006",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400042",
+    "customerId": "CRM-100006",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-05-03T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400043",
+    "customerId": "CRM-100006",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-10-04T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400044",
+    "customerId": "CRM-100007",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-05-07T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400045",
+    "customerId": "CRM-100007",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-03-18T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400046",
+    "customerId": "CRM-100007",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2025-10-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400047",
+    "customerId": "CRM-100007",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400048",
+    "customerId": "CRM-100007",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-07-14T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400049",
+    "customerId": "CRM-100007",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-06-05T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400050",
+    "customerId": "CRM-100007",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-20T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400051",
+    "customerId": "CRM-100007",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-08T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400052",
+    "customerId": "CRM-100008",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-16T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400053",
+    "customerId": "CRM-100008",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-03-29T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400054",
+    "customerId": "CRM-100008",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-06-01T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400055",
+    "customerId": "CRM-100008",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-27T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400056",
+    "customerId": "CRM-100008",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-12-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400057",
+    "customerId": "CRM-100008",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-08-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400058",
+    "customerId": "CRM-100008",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400059",
+    "customerId": "CRM-100008",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-22T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400060",
+    "customerId": "CRM-100008",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2025-10-30T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400061",
+    "customerId": "CRM-100008",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-02-22T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400062",
+    "customerId": "CRM-100008",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-10T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400063",
+    "customerId": "CRM-100008",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-01-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400064",
+    "customerId": "CRM-100009",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-04T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400065",
+    "customerId": "CRM-100009",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-21T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400066",
+    "customerId": "CRM-100009",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2025-12-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400067",
+    "customerId": "CRM-100009",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-26T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400068",
+    "customerId": "CRM-100009",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2025-10-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400069",
+    "customerId": "CRM-100009",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-05-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400070",
+    "customerId": "CRM-100009",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-02-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400071",
+    "customerId": "CRM-100009",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-24T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400072",
+    "customerId": "CRM-100009",
+    "interactionType": "PROMO_CLICK",
+    "channel": "STORE",
+    "interactionTs": "2026-03-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400073",
+    "customerId": "CRM-100009",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-10-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400074",
+    "customerId": "CRM-100009",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-08T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400075",
+    "customerId": "CRM-100010",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-09T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400076",
+    "customerId": "CRM-100010",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400077",
+    "customerId": "CRM-100010",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2025-08-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400078",
+    "customerId": "CRM-100010",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2026-02-01T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400079",
+    "customerId": "CRM-100011",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-22T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400080",
+    "customerId": "CRM-100011",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-10-09T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400081",
+    "customerId": "CRM-100011",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400082",
+    "customerId": "CRM-100011",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-31T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400083",
+    "customerId": "CRM-100011",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-15T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400084",
+    "customerId": "CRM-100011",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-29T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400085",
+    "customerId": "CRM-100011",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-09-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400086",
+    "customerId": "CRM-100011",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-08T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400087",
+    "customerId": "CRM-100011",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-04T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400088",
+    "customerId": "CRM-100011",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-23T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400089",
+    "customerId": "CRM-100012",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-09T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400090",
+    "customerId": "CRM-100012",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-10T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400091",
+    "customerId": "CRM-100012",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2026-03-28T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400092",
+    "customerId": "CRM-100012",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-06T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400093",
+    "customerId": "CRM-100012",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-22T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400094",
+    "customerId": "CRM-100012",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-01-24T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400095",
+    "customerId": "CRM-100012",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-15T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400096",
+    "customerId": "CRM-100012",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-02T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400097",
+    "customerId": "CRM-100012",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400098",
+    "customerId": "CRM-100014",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-04-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400099",
+    "customerId": "CRM-100014",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2025-09-22T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400100",
+    "customerId": "CRM-100014",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-29T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400101",
+    "customerId": "CRM-100014",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400102",
+    "customerId": "CRM-100014",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-16T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400103",
+    "customerId": "CRM-100014",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-05-05T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400104",
+    "customerId": "CRM-100014",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-08T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400105",
+    "customerId": "CRM-100014",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-31T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400106",
+    "customerId": "CRM-100015",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400107",
+    "customerId": "CRM-100015",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-03-14T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400108",
+    "customerId": "CRM-100015",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-05-30T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400109",
+    "customerId": "CRM-100015",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-03-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400110",
+    "customerId": "CRM-100015",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2025-10-23T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400111",
+    "customerId": "CRM-100015",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2026-05-31T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400112",
+    "customerId": "CRM-100016",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-05-24T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400113",
+    "customerId": "CRM-100016",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-27T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400114",
+    "customerId": "CRM-100016",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-06T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400115",
+    "customerId": "CRM-100016",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-18T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400116",
+    "customerId": "CRM-100017",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-05T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400117",
+    "customerId": "CRM-100017",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400118",
+    "customerId": "CRM-100017",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-16T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400119",
+    "customerId": "CRM-100017",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-19T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400120",
+    "customerId": "CRM-100017",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-03-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400121",
+    "customerId": "CRM-100017",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-09-03T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400122",
+    "customerId": "CRM-100017",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-19T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400123",
+    "customerId": "CRM-100017",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2026-03-22T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400124",
+    "customerId": "CRM-100017",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400125",
+    "customerId": "CRM-100017",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-28T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400126",
+    "customerId": "CRM-100017",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-12-28T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400127",
+    "customerId": "CRM-100017",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-24T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400128",
+    "customerId": "CRM-100018",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-07-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400129",
+    "customerId": "CRM-100018",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-20T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400130",
+    "customerId": "CRM-100018",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-10-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400131",
+    "customerId": "CRM-100018",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-05-10T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400132",
+    "customerId": "CRM-100018",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400133",
+    "customerId": "CRM-100019",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2025-09-12T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400134",
+    "customerId": "CRM-100019",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400135",
+    "customerId": "CRM-100019",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-17T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400136",
+    "customerId": "CRM-100019",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-10T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400137",
+    "customerId": "CRM-100019",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2025-08-13T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400138",
+    "customerId": "CRM-100021",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-02-07T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400139",
+    "customerId": "CRM-100023",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400140",
+    "customerId": "CRM-100023",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-06-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400141",
+    "customerId": "CRM-100023",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-10-24T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400142",
+    "customerId": "CRM-100023",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-06-03T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400143",
+    "customerId": "CRM-100023",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400144",
+    "customerId": "CRM-100023",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-01-09T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400145",
+    "customerId": "CRM-100023",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2025-10-02T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400146",
+    "customerId": "CRM-100023",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-11-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400147",
+    "customerId": "CRM-100023",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400148",
+    "customerId": "CRM-100023",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-03-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400149",
+    "customerId": "CRM-100024",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-12-28T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400150",
+    "customerId": "CRM-100024",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-06-08T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400151",
+    "customerId": "CRM-100024",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400152",
+    "customerId": "CRM-100024",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400153",
+    "customerId": "CRM-100024",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-06-11T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400154",
+    "customerId": "CRM-100024",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-04T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400155",
+    "customerId": "CRM-100024",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-05-31T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400156",
+    "customerId": "CRM-100024",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400157",
+    "customerId": "CRM-100024",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-11T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400158",
+    "customerId": "CRM-100025",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-01-06T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400159",
+    "customerId": "CRM-100025",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-16T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400160",
+    "customerId": "CRM-100025",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-17T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400161",
+    "customerId": "CRM-100025",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2026-01-09T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400162",
+    "customerId": "CRM-100025",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2025-12-23T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400163",
+    "customerId": "CRM-100025",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2025-08-21T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400164",
+    "customerId": "CRM-100025",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-09T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400165",
+    "customerId": "CRM-100025",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-07-07T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400166",
+    "customerId": "CRM-100026",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-13T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400167",
+    "customerId": "CRM-100026",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-03-14T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400168",
+    "customerId": "CRM-100026",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-05-31T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400169",
+    "customerId": "CRM-100026",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-07-14T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400170",
+    "customerId": "CRM-100026",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-04-21T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400171",
+    "customerId": "CRM-100027",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-04T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400172",
+    "customerId": "CRM-100027",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-18T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400173",
+    "customerId": "CRM-100027",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400174",
+    "customerId": "CRM-100027",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-24T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400175",
+    "customerId": "CRM-100027",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-07-02T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400176",
+    "customerId": "CRM-100027",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-11-21T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400177",
+    "customerId": "CRM-100027",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-04-25T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400178",
+    "customerId": "CRM-100027",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400179",
+    "customerId": "CRM-100028",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-10-27T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400180",
+    "customerId": "CRM-100028",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-07T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400181",
+    "customerId": "CRM-100028",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2025-11-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400182",
+    "customerId": "CRM-100028",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-07-19T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400183",
+    "customerId": "CRM-100028",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-25T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400184",
+    "customerId": "CRM-100029",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-04T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400185",
+    "customerId": "CRM-100029",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-05-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400186",
+    "customerId": "CRM-100029",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-01-28T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400187",
+    "customerId": "CRM-100030",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-01-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400188",
+    "customerId": "CRM-100030",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-07T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400189",
+    "customerId": "CRM-100031",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2025-10-22T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400190",
+    "customerId": "CRM-100031",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2025-09-20T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400191",
+    "customerId": "CRM-100031",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400192",
+    "customerId": "CRM-100031",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2025-09-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400193",
+    "customerId": "CRM-100031",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2025-11-07T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400194",
+    "customerId": "CRM-100031",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400195",
+    "customerId": "CRM-100031",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-04T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400196",
+    "customerId": "CRM-100031",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-23T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400197",
+    "customerId": "CRM-100032",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-12-26T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400198",
+    "customerId": "CRM-100032",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-04-05T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400199",
+    "customerId": "CRM-100032",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-08T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400200",
+    "customerId": "CRM-100032",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400201",
+    "customerId": "CRM-100033",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-01-01T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400202",
+    "customerId": "CRM-100033",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-02-11T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400203",
+    "customerId": "CRM-100033",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-01-07T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400204",
+    "customerId": "CRM-100033",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-11T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400205",
+    "customerId": "CRM-100033",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-01-12T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400206",
+    "customerId": "CRM-100033",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-09-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400207",
+    "customerId": "CRM-100033",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-23T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400208",
+    "customerId": "CRM-100034",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-03-08T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400209",
+    "customerId": "CRM-100035",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-26T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400210",
+    "customerId": "CRM-100035",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-31T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400211",
+    "customerId": "CRM-100035",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-27T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400212",
+    "customerId": "CRM-100035",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-11T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400213",
+    "customerId": "CRM-100035",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-02-21T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400214",
+    "customerId": "CRM-100036",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-18T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400215",
+    "customerId": "CRM-100036",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-12-31T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400216",
+    "customerId": "CRM-100036",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400217",
+    "customerId": "CRM-100036",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-10T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400218",
+    "customerId": "CRM-100036",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-09-09T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400219",
+    "customerId": "CRM-100036",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2026-04-08T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400220",
+    "customerId": "CRM-100036",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-02-23T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400221",
+    "customerId": "CRM-100036",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-02-13T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400222",
+    "customerId": "CRM-100036",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-21T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400223",
+    "customerId": "CRM-100036",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-11-08T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400224",
+    "customerId": "CRM-100036",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-04-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400225",
+    "customerId": "CRM-100036",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-22T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400226",
+    "customerId": "CRM-100037",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-04-22T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400227",
+    "customerId": "CRM-100037",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2025-08-21T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400228",
+    "customerId": "CRM-100037",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-02-07T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400229",
+    "customerId": "CRM-100037",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-19T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400230",
+    "customerId": "CRM-100037",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-28T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400231",
+    "customerId": "CRM-100037",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-12-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400232",
+    "customerId": "CRM-100037",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-04-21T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400233",
+    "customerId": "CRM-100037",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-07-22T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400234",
+    "customerId": "CRM-100037",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400235",
+    "customerId": "CRM-100038",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2025-12-24T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400236",
+    "customerId": "CRM-100038",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-06-12T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400237",
+    "customerId": "CRM-100038",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-13T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400238",
+    "customerId": "CRM-100038",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-15T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400239",
+    "customerId": "CRM-100038",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-07-30T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400240",
+    "customerId": "CRM-100038",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-04-17T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400241",
+    "customerId": "CRM-100038",
+    "interactionType": "APP_SESSION",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-27T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400242",
+    "customerId": "CRM-100038",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-02-18T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400243",
+    "customerId": "CRM-100038",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400244",
+    "customerId": "CRM-100038",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-08T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400245",
+    "customerId": "CRM-100038",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-03-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400246",
+    "customerId": "CRM-100038",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-04-07T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400247",
+    "customerId": "CRM-100039",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-04-12T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400248",
+    "customerId": "CRM-100039",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400249",
+    "customerId": "CRM-100039",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-01-05T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400250",
+    "customerId": "CRM-100039",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-19T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400251",
+    "customerId": "CRM-100039",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400252",
+    "customerId": "CRM-100039",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-09-26T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400253",
+    "customerId": "CRM-100039",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-31T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400254",
+    "customerId": "CRM-100039",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400255",
+    "customerId": "CRM-100039",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-22T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400256",
+    "customerId": "CRM-100039",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400257",
+    "customerId": "CRM-100039",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400258",
+    "customerId": "CRM-100040",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-01-04T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400259",
+    "customerId": "CRM-100040",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-11-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400260",
+    "customerId": "CRM-100040",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400261",
+    "customerId": "CRM-100040",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-16T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400262",
+    "customerId": "CRM-100040",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-17T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400263",
+    "customerId": "CRM-100040",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-25T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400264",
+    "customerId": "CRM-100040",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400265",
+    "customerId": "CRM-100040",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-13T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400266",
+    "customerId": "CRM-100040",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-29T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400267",
+    "customerId": "CRM-100040",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-10-16T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400268",
+    "customerId": "CRM-100040",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2025-08-04T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400269",
+    "customerId": "CRM-100041",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2025-12-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400270",
+    "customerId": "CRM-100042",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2025-09-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400271",
+    "customerId": "CRM-100042",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-01-15T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400272",
+    "customerId": "CRM-100042",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-17T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400273",
+    "customerId": "CRM-100042",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-10-01T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400274",
+    "customerId": "CRM-100042",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-04-17T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400275",
+    "customerId": "CRM-100043",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-30T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400276",
+    "customerId": "CRM-100043",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-14T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400277",
+    "customerId": "CRM-100044",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-01T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400278",
+    "customerId": "CRM-100044",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2025-12-16T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400279",
+    "customerId": "CRM-100044",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-01T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400280",
+    "customerId": "CRM-100045",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400281",
+    "customerId": "CRM-100045",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-02-20T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400282",
+    "customerId": "CRM-100045",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2026-02-26T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400283",
+    "customerId": "CRM-100045",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-26T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400284",
+    "customerId": "CRM-100045",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-22T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400285",
+    "customerId": "CRM-100045",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2025-10-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400286",
+    "customerId": "CRM-100045",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400287",
+    "customerId": "CRM-100045",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-07-21T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400288",
+    "customerId": "CRM-100045",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-01-03T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400289",
+    "customerId": "CRM-100045",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-31T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400290",
+    "customerId": "CRM-100045",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-20T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400291",
+    "customerId": "CRM-100045",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-06T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400292",
+    "customerId": "CRM-100046",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-02T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400293",
+    "customerId": "CRM-100048",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-02-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400294",
+    "customerId": "CRM-100048",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400295",
+    "customerId": "CRM-100048",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-04-19T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400296",
+    "customerId": "CRM-100048",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2026-01-13T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400297",
+    "customerId": "CRM-100048",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-12-12T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400298",
+    "customerId": "CRM-100048",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-12-20T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400299",
+    "customerId": "CRM-100048",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-03-11T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400300",
+    "customerId": "CRM-100048",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-12T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400301",
+    "customerId": "CRM-100048",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-05-26T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400302",
+    "customerId": "CRM-100048",
+    "interactionType": "STORE_VISIT",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-01-15T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400303",
+    "customerId": "CRM-100048",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400304",
+    "customerId": "CRM-100049",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-05-02T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400305",
+    "customerId": "CRM-100049",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-01-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400306",
+    "customerId": "CRM-100050",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-16T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400307",
+    "customerId": "CRM-100050",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-02-03T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400308",
+    "customerId": "CRM-100050",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-10-27T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400309",
+    "customerId": "CRM-100050",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400310",
+    "customerId": "CRM-100051",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-13T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400311",
+    "customerId": "CRM-100051",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-10-17T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400312",
+    "customerId": "CRM-100051",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-06-20T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400313",
+    "customerId": "CRM-100051",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-12-27T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400314",
+    "customerId": "CRM-100051",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-04-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400315",
+    "customerId": "CRM-100051",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2025-08-12T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400316",
+    "customerId": "CRM-100051",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-12-27T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400317",
+    "customerId": "CRM-100051",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400318",
+    "customerId": "CRM-100051",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-06-15T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400319",
+    "customerId": "CRM-100051",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2026-06-14T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400320",
+    "customerId": "CRM-100052",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2025-12-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400321",
+    "customerId": "CRM-100052",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-10-16T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400322",
+    "customerId": "CRM-100052",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-10-22T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400323",
+    "customerId": "CRM-100052",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-07-06T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400324",
+    "customerId": "CRM-100052",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-07T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400325",
+    "customerId": "CRM-100052",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "STORE",
+    "interactionTs": "2026-02-11T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400326",
+    "customerId": "CRM-100052",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2025-10-21T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400327",
+    "customerId": "CRM-100052",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-01-30T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400328",
+    "customerId": "CRM-100052",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-11-15T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400329",
+    "customerId": "CRM-100053",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2025-12-27T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400330",
+    "customerId": "CRM-100053",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-05-30T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400331",
+    "customerId": "CRM-100053",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-12T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400332",
+    "customerId": "CRM-100053",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-08-10T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400333",
+    "customerId": "CRM-100053",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-12-07T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400334",
+    "customerId": "CRM-100053",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-01-08T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400335",
+    "customerId": "CRM-100053",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-11-21T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400336",
+    "customerId": "CRM-100054",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-07T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400337",
+    "customerId": "CRM-100054",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-05-02T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400338",
+    "customerId": "CRM-100054",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-01-09T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400339",
+    "customerId": "CRM-100054",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-02-07T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400340",
+    "customerId": "CRM-100054",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-01T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400341",
+    "customerId": "CRM-100054",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-09-07T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400342",
+    "customerId": "CRM-100054",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-04-22T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400343",
+    "customerId": "CRM-100054",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2026-06-01T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400344",
+    "customerId": "CRM-100054",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2025-10-01T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400345",
+    "customerId": "CRM-100054",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-20T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400346",
+    "customerId": "CRM-100055",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-04-25T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400347",
+    "customerId": "CRM-100055",
+    "interactionType": "PROMO_CLICK",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-02-19T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400348",
+    "customerId": "CRM-100055",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2025-08-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400349",
+    "customerId": "CRM-100055",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2025-08-28T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400350",
+    "customerId": "CRM-100055",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-03-27T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400351",
+    "customerId": "CRM-100055",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-12-10T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400352",
+    "customerId": "CRM-100055",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-08T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400353",
+    "customerId": "CRM-100055",
+    "interactionType": "PROMO_CLICK",
+    "channel": "STORE",
+    "interactionTs": "2026-03-12T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400354",
+    "customerId": "CRM-100055",
+    "interactionType": "APP_SESSION",
+    "channel": "WEB",
+    "interactionTs": "2026-05-31T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400355",
+    "customerId": "CRM-100055",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-05-08T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400356",
+    "customerId": "CRM-100055",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-05T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400357",
+    "customerId": "CRM-100056",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-09T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400358",
+    "customerId": "CRM-100056",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-01-11T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400359",
+    "customerId": "CRM-100056",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "WEB",
+    "interactionTs": "2025-12-23T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400360",
+    "customerId": "CRM-100056",
+    "interactionType": "CART_ABANDONED",
+    "channel": "WEB",
+    "interactionTs": "2026-04-02T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400361",
+    "customerId": "CRM-100056",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-04-01T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400362",
+    "customerId": "CRM-100056",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2025-08-29T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400363",
+    "customerId": "CRM-100056",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-03-10T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400364",
+    "customerId": "CRM-100056",
+    "interactionType": "APP_SESSION",
+    "channel": "STORE",
+    "interactionTs": "2025-10-17T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400365",
+    "customerId": "CRM-100057",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-04T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400366",
+    "customerId": "CRM-100057",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-04-17T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400367",
+    "customerId": "CRM-100057",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-11-28T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400368",
+    "customerId": "CRM-100057",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-09-24T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400369",
+    "customerId": "CRM-100057",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-20T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400370",
+    "customerId": "CRM-100057",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2026-01-08T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400371",
+    "customerId": "CRM-100057",
+    "interactionType": "APP_SESSION",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-02-28T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400372",
+    "customerId": "CRM-100058",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-22T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400373",
+    "customerId": "CRM-100058",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-05-05T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400374",
+    "customerId": "CRM-100058",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "WEB",
+    "interactionTs": "2026-04-28T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400375",
+    "customerId": "CRM-100058",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-08-26T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400376",
+    "customerId": "CRM-100058",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "STORE",
+    "interactionTs": "2026-04-23T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400377",
+    "customerId": "CRM-100058",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-02-13T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400378",
+    "customerId": "CRM-100058",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2026-05-28T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400379",
+    "customerId": "CRM-100058",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-07-14T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400380",
+    "customerId": "CRM-100058",
+    "interactionType": "STORE_VISIT",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-12-09T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400381",
+    "customerId": "CRM-100059",
+    "interactionType": "REVIEW_SUBMITTED",
+    "channel": "WEB",
+    "interactionTs": "2026-01-26T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400382",
+    "customerId": "CRM-100059",
+    "interactionType": "CART_ABANDONED",
+    "channel": "STORE",
+    "interactionTs": "2025-10-31T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400383",
+    "customerId": "CRM-100059",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-11-12T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400384",
+    "customerId": "CRM-100059",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-03-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400385",
+    "customerId": "CRM-100059",
+    "interactionType": "PROMO_CLICK",
+    "channel": "WEB",
+    "interactionTs": "2025-08-15T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400386",
+    "customerId": "CRM-100059",
+    "interactionType": "CART_ABANDONED",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-01-21T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400387",
+    "customerId": "CRM-100059",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2025-11-01T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400388",
+    "customerId": "CRM-100059",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-02-04T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400389",
+    "customerId": "CRM-100059",
+    "interactionType": "STORE_VISIT",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-08-29T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400390",
+    "customerId": "CRM-100059",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-10-12T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400391",
+    "customerId": "CRM-100059",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-07-17T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400392",
+    "customerId": "CRM-100059",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2025-12-28T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400393",
+    "customerId": "CRM-100060",
+    "interactionType": "EMAIL_OPEN",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-01-19T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400394",
+    "customerId": "CRM-100060",
+    "interactionType": "STORE_VISIT",
+    "channel": "STORE",
+    "interactionTs": "2026-05-08T00:00:00Z",
+    "campaignId": "CMP-SPRING-26"
+  },
+  {
+    "interactionId": "INT-400395",
+    "customerId": "CRM-100060",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2025-08-27T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400396",
+    "customerId": "CRM-100060",
+    "interactionType": "NEWSLETTER_UNSUBSCRIBE",
+    "channel": "STORE",
+    "interactionTs": "2026-03-04T00:00:00Z",
+    "campaignId": null
+  },
+  {
+    "interactionId": "INT-400397",
+    "customerId": "CRM-100060",
+    "interactionType": "CART_ABANDONED",
+    "channel": "CALL_CENTER",
+    "interactionTs": "2026-01-26T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400398",
+    "customerId": "CRM-100060",
+    "interactionType": "APP_SESSION",
+    "channel": "MARKETPLACE",
+    "interactionTs": "2026-06-04T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400399",
+    "customerId": "CRM-100060",
+    "interactionType": "STORE_VISIT",
+    "channel": "WEB",
+    "interactionTs": "2025-12-23T00:00:00Z",
+    "campaignId": "CMP-LOYALTY-BOOST"
+  },
+  {
+    "interactionId": "INT-400400",
+    "customerId": "CRM-100060",
+    "interactionType": "PROMO_CLICK",
+    "channel": "STORE",
+    "interactionTs": "2026-01-23T00:00:00Z",
+    "campaignId": "CMP-WINBACK"
+  },
+  {
+    "interactionId": "INT-400401",
+    "customerId": "CRM-100060",
+    "interactionType": "PROMO_CLICK",
+    "channel": "MOBILE_APP",
+    "interactionTs": "2026-07-06T00:00:00Z",
+    "campaignId": null
+  }
+]

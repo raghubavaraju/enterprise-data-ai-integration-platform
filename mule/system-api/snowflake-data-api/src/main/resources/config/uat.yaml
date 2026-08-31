@@ -1,0 +1,38 @@
+# =============================================================================
+# Snowflake Data System API - UAT
+# =============================================================================
+app:
+  name: snowflake-data-system-api
+  version: 1.0.0
+
+http:
+  port: "8083"
+
+api:
+  id: "${anypoint.api.id}"
+  mainFlow: snowflake-data-system-api-main
+
+snowflake:
+  account: "${snowflake.account}"       # e.g. acme-dev.eu-west-1
+  user: SVC_MULE_INTEGRATION
+  # Read-only role. The API cannot write even if a bug tried to: this is the
+  # first of two controls, the second being that the API accepts no SQL at all.
+  role: ACME_INTEGRATION_RO
+  warehouse: ACME_INTEGRATION_WH
+  database: ACME_EDP
+  defaultSchema: ANALYTICS
+  # An API-facing query that runs longer than this is a bug, not a slow query.
+  statementTimeoutSeconds: 20
+  statementTimeoutMs: 22000
+  maxRetries: 2
+  retryDelayMs: 250
+  pollMaxAttempts: 10
+  pollIntervalMs: 500
+
+logging:
+  level: INFO
+  logPayloads: false
+
+tls:
+  truststore: {path: tls/uat-truststore.jks}
+  keystore: {path: tls/uat-keystore.jks}

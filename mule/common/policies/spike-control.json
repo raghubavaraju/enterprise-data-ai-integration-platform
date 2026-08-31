@@ -1,0 +1,13 @@
+{
+  "policyTemplateId": "spike-control",
+  "policyVersion": "1.2.0",
+  "configurationData": {
+    "maximumRequests": 30,
+    "timePeriodInMilliseconds": 60000,
+    "delayTimeInMillis": 500,
+    "delayAttempts": 2,
+    "queuingLimit": 20,
+    "exposeHeaders": true
+  },
+  "notes": "Applied to the AI Insights API only. Generative calls are the one endpoint class where a traffic spike converts directly into money, so it is throttled with a short queue instead of rejected outright."
+}

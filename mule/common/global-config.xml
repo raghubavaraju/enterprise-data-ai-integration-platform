@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:api-gateway="http://www.mulesoft.org/schema/mule/api-gateway"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:os="http://www.mulesoft.org/schema/mule/os"
+      xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+      xmlns:tls="http://www.mulesoft.org/schema/mule/tls"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/api-gateway
+        http://www.mulesoft.org/schema/mule/api-gateway/current/mule-api-gateway.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/os
+        http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd
+        http://www.mulesoft.org/schema/mule/secure-properties
+        http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+        http://www.mulesoft.org/schema/mule/tls
+        http://www.mulesoft.org/schema/mule/tls/current/mule-tls.xsd">
+
+    <!--
+      Configuration. Two files per environment:
+        config/<env>.yaml         non-sensitive settings, committed
+        config/<env>-secure.yaml  encrypted values, referenced as ${secure::...}
+      The decryption key is supplied at runtime (-M-Dsecure.key=...) from Runtime
+      Manager's secure properties. It is never in the repository, never in the
+      pom, and never in a pipeline variable that prints to a log.
+    -->
+    <configuration-properties file="config/${mule.env}.yaml" />
+    <secure-properties:config name="secure-properties-config"
+                              file="config/${mule.env}-secure.yaml"
+                              key="${secure.key}">
+        <secure-properties:encrypt algorithm="AES" mode="CBC" />
+    </secure-properties:config>
+
+    <!--
+      Global default error handler. Every flow inherits it unless it declares
+      its own, which none of them do.
+    -->
+    <configuration defaultErrorHandler-ref="global-error-handler"
+                   correlationIdGeneratorExpression="#['acme-' ++ uuid()]" />
+
+    <!--
+      TLS. Outbound is TLS 1.2+ with an explicit truststore; mutual TLS is used
+      for the Snowflake key-pair flow and for partner-facing endpoints.
+      Ciphers are pinned rather than left to the JVM default so that an upgrade
+      cannot silently re-enable a weak suite.
+    -->
+    <tls:context name="platform-tls-context">
+        <tls:trust-store path="${tls.truststore.path}"
+                         password="${secure::tls.truststore.password}"
+                         type="jks" />
+        <tls:key-store path="${tls.keystore.path}"
+                       keyPassword="${secure::tls.keystore.keyPassword}"
+                       password="${secure::tls.keystore.password}"
+                       type="jks" />
+    </tls:context>
+
+    <!--
+      Object store used for idempotency keys and for the circuit-breaker state
+      flag. persistent="true" so the guarantee survives a worker restart -
+      an in-memory idempotency store is not an idempotency store.
+    -->
+    <os:object-store name="idempotency-store"
+                     persistent="true"
+                     maxEntries="10000"
+                     entryTtl="${idempotency.ttlMinutes}"
+                     entryTtlUnit="MINUTES"
+                     expirationInterval="1"
+                     expirationIntervalUnit="MINUTES" />
+
+    <os:object-store name="circuit-breaker-store"
+                     persistent="true"
+                     maxEntries="100"
+                     entryTtl="${circuitBreaker.resetSeconds}"
+                     entryTtlUnit="SECONDS" />
+
+    <!--
+      API Manager autodiscovery. This is what binds the deployed application to
+      its API instance so that the policies configured in API Manager - JWT
+      validation, rate limiting, IP allow-listing, header removal - actually
+      apply. Without it, the app runs unpoliced and nobody notices until an
+      audit.
+    -->
+    <api-gateway:autodiscovery apiId="${api.id}" flowRef="${api.mainFlow}"
+                               ignoreBasePath="true" />
+</mule>

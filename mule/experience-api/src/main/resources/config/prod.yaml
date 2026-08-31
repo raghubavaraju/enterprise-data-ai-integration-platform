@@ -1,0 +1,48 @@
+# =============================================================================
+# Customer Experience API - production
+# =============================================================================
+# Differences from the lower environments are deliberate and few.  Where
+# production diverges from UAT, UAT stops being a test of production.
+#   * tighter downstream timeout, because the client SLA is real here
+#   * internal DNS instead of a CloudHub hostname (private endpoints only)
+#   * INFO logging, never DEBUG - DEBUG on a customer API is a PII incident
+#     waiting for a bad day
+# =============================================================================
+
+app:
+  name: customer-experience-api
+  version: 1.0.0
+
+http:
+  port: "8081"
+
+api:
+  id: "${anypoint.api.id}"
+  mainFlow: customer-experience-api-main
+
+processApi:
+  host: customer-360-process-api.internal.acme-retail.example.com
+  port: "443"
+  timeoutMs: 4000
+
+aiProcessApi:
+  host: customer-intelligence-process-api.internal.acme-retail.example.com
+  port: "443"
+  timeoutMs: 25000
+
+idempotency:
+  ttlMinutes: 15
+
+circuitBreaker:
+  failureThreshold: 5
+  resetSeconds: 30
+
+tls:
+  truststore:
+    path: tls/prod-truststore.jks
+  keystore:
+    path: tls/prod-keystore.jks
+
+logging:
+  level: INFO
+  logPayloads: false

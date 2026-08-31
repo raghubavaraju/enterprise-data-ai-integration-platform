@@ -1,0 +1,11 @@
+#%RAML 1.0 Trait
+usage: |
+  For operations with a side effect that costs money. A repeated key within the
+  TTL returns the first response instead of re-executing - which matters
+  because every well-behaved client retries on timeout.
+headers:
+  Idempotency-Key:
+    type: string
+    required: false
+    maxLength: 128
+    description: Client-generated key, unique per logical operation.

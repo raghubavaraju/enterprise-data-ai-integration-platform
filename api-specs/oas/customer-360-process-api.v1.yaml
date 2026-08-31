@@ -1,0 +1,82 @@
+openapi: 3.0.3
+info:
+  title: Customer 360 Process API
+  version: 1.0.0
+  description: |
+    Process layer.  Orchestrates the system APIs into the Customer 360 business
+    object and owns the degradation policy.
+
+    Consumers are experience APIs only.  It is on purpose *not* published to
+    client applications: a process API's contract follows the business process
+    and therefore changes more often than a client should have to absorb.
+servers:
+  - url: https://process.internal.acme-retail.example.com/customer360/v1
+  - url: http://localhost:8091/api/v1
+security:
+  - OAuth2ClientCredentials: [customer:read]
+paths:
+  /customers/{customerId}/360:
+    get:
+      tags: [customer-360]
+      operationId: assembleCustomer360
+      summary: Assemble the Customer 360 business object
+      description: >
+        Reads are issued concurrently, not sequentially: the response is then as
+        slow as its slowest dependency rather than the sum of all of them.  Only
+        the core profile is a hard dependency; everything else degrades.
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - {name: includeOrders, in: query, schema: {type: boolean, default: true}}
+        - {name: includeSupport, in: query, schema: {type: boolean, default: true}}
+        - {name: includeAi, in: query, schema: {type: boolean, default: false}}
+        - {name: orderLimit, in: query,
+           schema: {type: integer, minimum: 1, maximum: 100, default: 10}}
+      responses:
+        '200':
+          description: Assembled object, with degradation reported explicitly.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [customerId, profile, partial, degradedFields]
+                properties:
+                  customerId: {type: string}
+                  profile: {type: object, additionalProperties: true}
+                  orders: {type: array, items: {type: object}}
+                  orderPagination:
+                    $ref: '../fragments/common.oas.yaml#/components/schemas/Pagination'
+                  support: {type: array, items: {type: object}}
+                  loyalty: {type: object, nullable: true}
+                  analytics: {type: object}
+                  churnRisk: {type: object, nullable: true}
+                  aiInsights: {type: object, nullable: true}
+                  dataQuality:
+                    type: object
+                    properties:
+                      completenessScore: {type: number}
+                      contributingSources: {type: array, items: {type: string}}
+                      asOf: {type: string, format: date-time}
+                  partial: {type: boolean}
+                  degradedFields:
+                    type: array
+                    description: >
+                      Named dependencies that failed, with the reason. The
+                      experience layer reduces this to field names; the process
+                      layer keeps the detail for operations.
+                    items:
+                      type: object
+                      properties:
+                        field: {type: string}
+                        dependency: {type: string}
+                        errorCode: {type: string}
+                        reason: {type: string}
+                  correlationId: {type: string}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '503': {$ref: '../fragments/error.oas.yaml#/components/responses/ServiceUnavailable'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'

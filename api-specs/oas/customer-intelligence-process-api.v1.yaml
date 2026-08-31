@@ -1,0 +1,89 @@
+openapi: 3.0.3
+info:
+  title: Customer Intelligence Process API
+  version: 1.0.0
+  description: |
+    Process layer.  Owns everything about invoking the AI capability on behalf
+    of an experience API: idempotency, bounded concurrency towards the model
+    provider, the no-automatic-retry rule, and merging the deterministic churn
+    score with generated narrative.
+
+    It is a separate process API from Customer 360 because its failure and cost
+    profile is different.  Bundling them would mean a model outage degrading a
+    profile lookup, and a traffic spike on profile lookups fanning out to a paid
+    provider.
+servers:
+  - url: https://process.internal.acme-retail.example.com/intelligence/v1
+  - url: http://localhost:8091/api/v1
+security:
+  - OAuth2ClientCredentials: [insights:read]
+paths:
+  /customers/{customerId}/ai-analysis:
+    post:
+      tags: [intelligence]
+      operationId: runAiAnalysis
+      summary: Run one analysis, idempotently
+      description: >
+        `Idempotency-Key` is honoured here and not at the experience layer
+        because this is the boundary where a repeated call costs money.  The
+        call is never retried automatically: a generative request is not
+        idempotent from a cost perspective, and a slow response is usually a
+        slow model and not a lost request.
+      security: [{OAuth2ClientCredentials: [ai:invoke]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [capability]
+              properties:
+                capability: {type: string}
+                question: {type: string, maxLength: 500}
+                forceRefresh: {type: boolean, default: false}
+      responses:
+        '200':
+          description: Insight, with `idempotentReplay` set when the key was reused.
+          content:
+            application/json:
+              schema: {type: object, additionalProperties: true}
+        '400': {$ref: '../fragments/error.oas.yaml#/components/responses/BadRequest'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '502':
+          description: The AI service failed or the output was blocked.
+          content:
+            application/json:
+              schema: {$ref: '../fragments/error.oas.yaml#/components/schemas/Error'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+  /customers/{customerId}/insights:
+    get:
+      tags: [intelligence]
+      operationId: getIntelligenceBundle
+      summary: Churn score plus generated insight, degrading independently
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - {name: types, in: query, schema: {type: string}}
+      responses:
+        '200':
+          description: Bundle.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerId: {type: string}
+                  churnRisk: {type: object, nullable: true}
+                  aiInsights: {type: object, nullable: true}
+                  partial: {type: boolean}
+                  degradedFields: {type: array, items: {type: object}}
+                  correlationId: {type: string}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'

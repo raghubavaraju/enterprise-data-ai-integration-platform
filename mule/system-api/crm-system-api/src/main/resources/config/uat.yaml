@@ -1,0 +1,29 @@
+# =============================================================================
+# CRM System API - UAT
+# =============================================================================
+app:
+  name: crm-system-api
+  version: 1.0.0
+
+http:
+  port: "8084"
+
+api:
+  id: "${anypoint.api.id}"
+  mainFlow: crm-system-api-main
+
+crm:
+  host: crm-uat.internal.acme-retail.example.com
+  port: "443"
+  # The CRM is an on-premises system behind a VPN; its p99 is measured in
+  # seconds, so the budget is generous - and the process layer knows to degrade
+  # instead of wait for it.
+  timeoutMs: 6000
+
+logging:
+  level: INFO
+  logPayloads: false
+
+tls:
+  truststore: {path: tls/uat-truststore.jks}
+  keystore: {path: tls/uat-keystore.jks}

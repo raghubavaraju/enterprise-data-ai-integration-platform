@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit
+        http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/validation
+        http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+
+    <!--
+      ==========================================================================
+      Customer Experience API  (experience layer)
+      ==========================================================================
+      Responsibilities, and nothing else:
+        * shape the payload for the service-desk application
+        * apply entitlement-based masking from the token's scopes
+        * enforce the client-facing SLA
+        * present a stable contract that hides process and system churn
+
+      Explicitly NOT here: orchestration (process layer), any knowledge of
+      Snowflake or a source system (system layer), and any business rule.
+
+      Python counterpart: services/gateway/experience_layer.py
+    -->
+
+    <http:listener-config name="experience-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${http.port}"
+                                  protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:listener-config>
+
+    <!--
+      APIkit router validates every request and response against the RAML pulled
+      from Exchange. Contract enforcement in the runtime, not just in the docs:
+      a response that does not match the published contract fails here rather
+      than at the consumer.
+    -->
+    <apikit:config name="customer-experience-api-config"
+                   raml="resource::${anypoint.orgId}:customer-experience-api:1.0.0:raml:zip:customer-experience-api.raml"
+                   outboundHeadersMapName="outboundHeaders"
+                   httpStatusVarName="httpStatus"
+                   keepRamlBaseUri="false"
+                   disableValidations="false" />
+
+    <http:request-config name="process-api-request-config" responseTimeout="${processApi.timeoutMs}">
+        <http:request-connection host="${processApi.host}" port="${processApi.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+        <!-- Client credentials for platform-to-platform calls. The caller's own
+             token is NOT forwarded: the experience layer has already made the
+             entitlement decision, and forwarding a client token downstream would
+             mean every internal API has to re-implement that decision. -->
+        <http:default-headers>
+            <http:default-header key="client_id" value="${secure::processApi.clientId}" />
+            <http:default-header key="client_secret" value="${secure::processApi.clientSecret}" />
+        </http:default-headers>
+    </http:request-config>
+
+    <!-- ===================================================================
+         Main listener + router
+         =================================================================== -->
+    <flow name="customer-experience-api-main">
+        <http:listener config-ref="experience-http-listener-config" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+
+        <!-- Adopt the caller's trace id when it sends one. A client that already
+             has a request id and gets a different one back cannot correlate its
+             own logs with ours, which is the whole purpose of the header. -->
+        <set-variable variableName="inboundCorrelationId"
+                      value="#[attributes.headers['x-correlation-id'] default correlationId]"
+                      doc:name="Adopt caller correlation id" />
+
+        <logger level="INFO" category="acme.experience.customer"
+                message='#["api_request method=" ++ attributes.method
+                          ++ " path=" ++ attributes.requestPath
+                          ++ " clientId=" ++ (attributes.headers.client_id default "unknown")
+                          ++ " correlationId=" ++ correlationId]' />
+
+        <apikit:router config-ref="customer-experience-api-config" />
+
+        <error-handler ref="global-error-handler" />
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/360
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\360:customer-experience-api-config">
+        <validation:matches-regex value="#[attributes.uriParams.customerId]"
+                                  regex="^[A-Z]{3}-[0-9]{6}$"
+                                  doc:name="Validate customerId format" />
+
+        <!-- Delegate assembly. One outbound call: the experience layer never
+             fans out to systems itself, because that is how experience APIs
+             quietly become process APIs with client-facing contracts. -->
+        <http:request method="GET" config-ref="process-api-request-config"
+                      path="/api/v1/customers/{customerId}/360"
+                      target="processResponse" doc:name="Customer 360 Process API">
+            <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:query-params><![CDATA[#[{
+                includeOrders:  attributes.queryParams.includeOrders  default true,
+                includeSupport: attributes.queryParams.includeSupport default true,
+                includeAi:      attributes.queryParams.includeAi      default false,
+                orderLimit:     attributes.queryParams.orderLimit     default 10
+            }]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <!-- Transient failures only. A 404 from the process API is a real
+                 404 and retrying it three times just makes the client wait. -->
+            <reconnect frequency="200" count="2" />
+        </http:request>
+
+        <!-- Entitlement decision. The scopes come from the JWT that API Manager
+             already validated; the flow never re-parses the token itself. -->
+        <set-variable variableName="maySeePii"
+                      value="#[(attributes.headers['x-token-scopes'] default '') contains 'pii:read']"
+                      doc:name="Read pii:read entitlement" />
+
+        <ee:transform doc:name="Shape and mask">
+            <ee:message>
+                <ee:set-payload resource="dw/customer-360-response.dwl" />
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" category="acme.experience.customer"
+                message='#["customer_360_served customerId=" ++ attributes.uriParams.customerId
+                          ++ " partial=" ++ (vars.processResponse.partial default false)
+                          ++ " masked=" ++ (not vars.maySeePii)
+                          ++ " correlationId=" ++ correlationId]' />
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/churn-risk
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\churn-risk:customer-experience-api-config">
+        <http:request method="GET" config-ref="process-api-request-config"
+                      path="/api/v1/customers/{customerId}/360"
+                      target="processResponse" doc:name="Customer 360 Process API">
+            <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:query-params><![CDATA[#[{includeOrders: false, includeSupport: false}]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+        </http:request>
+
+        <choice doc:name="Score present?">
+            <when expression="#[vars.processResponse.churnRisk != null]">
+                <ee:transform doc:name="Churn response">
+                    <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+vars.processResponse.churnRisk ++ {
+    customerId: attributes.uriParams.customerId,
+    meta: { correlationId: correlationId }
+}]]></ee:set-payload></ee:message>
+                </ee:transform>
+            </when>
+            <otherwise>
+                <!-- No score is a legitimate state (a customer scored for the
+                     first time tonight), so it is a 404 on the sub-resource,
+                     not a 500. -->
+                <raise-error type="ACME:NOT_FOUND"
+                             description="No churn score is available for this customer." />
+            </otherwise>
+        </choice>
+    </flow>
+
+    <!-- ===================================================================
+         GET /customers/{customerId}/insights
+         =================================================================== -->
+    <flow name="get:\customers\(customerId)\insights:customer-experience-api-config">
+        <http:request method="GET" config-ref="process-api-request-config"
+                      path="/api/v1/customers/{customerId}/insights"
+                      target="processResponse"
+                      doc:name="Customer Intelligence Process API">
+            <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:query-params><![CDATA[#[{
+                types: attributes.queryParams.types default "SUMMARY,CHURN_EXPLANATION,NEXT_BEST_ACTION"
+            }]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+        </http:request>
+
+        <ee:transform doc:name="Shape insights">
+            <ee:message><ee:set-payload resource="dw/insights-response.dwl" /></ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- ===================================================================
+         GET /cohorts/high-risk    and    GET /governance/data-quality
+         =================================================================== -->
+    <flow name="get:\cohorts\high-risk:customer-experience-api-config">
+        <http:request method="GET" config-ref="process-api-request-config"
+                      path="/api/v1/cohorts/high-risk" doc:name="Process API">
+            <http:query-params><![CDATA[#[{limit: attributes.queryParams.limit default 25}]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+        </http:request>
+    </flow>
+
+    <flow name="get:\governance\data-quality:customer-experience-api-config">
+        <http:request method="GET" config-ref="process-api-request-config"
+                      path="/api/v1/governance/data-quality" doc:name="Process API">
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+        </http:request>
+    </flow>
+
+    <!-- ===================================================================
+         GET /health
+         =================================================================== -->
+    <flow name="get:\health:customer-experience-api-config">
+        <ee:transform doc:name="Health">
+            <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    status: "UP",
+    service: "customer-experience-api",
+    version: p('app.version') default "1.0.0",
+    environment: p('mule.env')
+}]]></ee:set-payload></ee:message>
+        </ee:transform>
+    </flow>
+</mule>

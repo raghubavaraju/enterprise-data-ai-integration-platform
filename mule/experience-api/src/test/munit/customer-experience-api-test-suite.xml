@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit
+        http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools
+        http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      MUnit suite - Customer Experience API
+      ==========================================================================
+      Every downstream connector is mocked.  A test that needs the process API
+      running is not a unit test, it is an integration test with a long feedback
+      loop and a habit of failing for reasons unrelated to the change.
+
+      The cases below are chosen to cover the decisions this layer actually
+      makes, and not to inflate a coverage number:
+
+        1. masking is applied when the token lacks pii:read
+        2. masking is NOT applied when it holds pii:read
+        3. a partial upstream response is surfaced, not hidden
+        4. a malformed customerId is rejected before any downstream call
+        5. a downstream 404 becomes the canonical 404 error payload
+        6. a downstream timeout becomes a retryable 504
+        7. the caller's correlation id is adopted and echoed
+    -->
+
+    <munit:config name="customer-experience-api-test-suite.xml">
+        <munit:parameterizations />
+    </munit:config>
+
+    <munit:before-suite name="set-test-properties">
+        <munit:set-event>
+            <munit:payload value="#[{}]" />
+        </munit:set-event>
+    </munit:before-suite>
+
+    <!-- =================================================================== -->
+    <munit:test name="get-customer-360-masks-pii-when-scope-absent"
+                description="A caller without pii:read receives masked identifiers.">
+        <munit:behavior>
+            <munit-tools:mock-when doc:name="Mock Customer 360 Process API"
+                                   processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' },
+                    queryParams: {},
+                    headers: { 'x-token-scopes': 'customer:read insights:read' },
+                    method: 'GET',
+                    requestPath: '/api/v1/customers/CRM-100005/360'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.profile._masked]"
+                                     is="#[MunitTools::equalTo(true)]"
+                                     message="Profile must be flagged as masked." />
+            <munit-tools:assert-that expression="#[payload.profile.email]"
+                                     is="#[MunitTools::containsString('*')]"
+                                     message="E-mail must be masked." />
+            <munit-tools:assert-that expression="#[payload.profile.email]"
+                                     is="#[MunitTools::not(MunitTools::containsString('sofia.chen'))]"
+                                     message="The local part must not survive masking." />
+            <munit-tools:assert-that expression="#[payload.profile.phone]"
+                                     is="#[MunitTools::containsString('***')]"
+                                     message="Phone must be masked." />
+            <munit-tools:assert-that expression="#[payload.profile.birthDate]"
+                                     is="#[MunitTools::containsString('-**-**')]"
+                                     message="Date of birth must be generalised to year." />
+            <!-- Non-identifying analytics must survive masking untouched:
+                 masking that destroys the useful part gets turned off. -->
+            <munit-tools:assert-that expression="#[payload.analytics.totalOrders]"
+                                     is="#[MunitTools::notNullValue()]"
+                                     message="Analytics must not be affected by masking." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="get-customer-360-returns-unmasked-with-pii-scope"
+                description="A caller holding pii:read receives the real identifiers.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' },
+                    queryParams: {},
+                    headers: { 'x-token-scopes': 'customer:read pii:read' },
+                    method: 'GET', requestPath: '/api/v1/customers/CRM-100005/360'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.profile._masked default false]"
+                                     is="#[MunitTools::equalTo(false)]" />
+            <munit-tools:assert-that expression="#[payload.profile.email]"
+                                     is="#[MunitTools::containsString('@')]" />
+            <munit-tools:assert-that expression="#[payload.profile.email]"
+                                     is="#[MunitTools::not(MunitTools::containsString('***'))]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="partial-upstream-response-is-surfaced"
+                description="When a source system was unavailable the response says so.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360-degraded.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/customers/CRM-100005/360'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.meta.partial]"
+                                     is="#[MunitTools::equalTo(true)]"
+                                     message="A degraded response must be flagged as partial." />
+            <munit-tools:assert-that expression="#[payload.meta.degradedFields]"
+                                     is="#[MunitTools::hasItem('loyalty')]"
+                                     message="The missing part must be named." />
+            <!-- The client must not be told which internal dependency failed. -->
+            <munit-tools:assert-that expression="#[write(payload.meta, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('snowflake'))]"
+                                     message="Internal dependency names must not leak to a client." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="malformed-customer-id-is-rejected-before-any-downstream-call"
+                expectedErrorType="VALIDATION:INVALID"
+                description="Validation happens first, so a bad id costs no downstream call.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[{}]" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'not-a-customer-id' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/customers/not-a-customer-id/360'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:verify-call processor="http:request" times="0"
+                                     doc:name="Assert no downstream call was made">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+            </munit-tools:verify-call>
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="downstream-not-found-becomes-canonical-404"
+                description="A 404 from the process API becomes the platform's 404 payload.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:NOT_FOUND" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-999999' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/customers/CRM-999999/360'
+                }]" />
+            </munit:set-event>
+            <try>
+                <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+                <error-handler ref="global-error-handler" />
+            </try>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.errorCode]"
+                                     is="#[MunitTools::equalTo('PLATFORM:RESOURCE_NOT_FOUND')]" />
+            <munit-tools:assert-that expression="#[payload.retryable]"
+                                     is="#[MunitTools::equalTo(false)]"
+                                     message="A 404 must never be advertised as retryable." />
+            <munit-tools:assert-that expression="#[payload.correlationId]"
+                                     is="#[MunitTools::notNullValue()]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="downstream-timeout-becomes-retryable-504"
+                description="A timeout is reported as retryable so clients back off correctly.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:TIMEOUT" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/customers/CRM-100005/360'
+                }]" />
+            </munit:set-event>
+            <try>
+                <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+                <error-handler ref="global-error-handler" />
+            </try>
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.errorCode]"
+                                     is="#[MunitTools::equalTo('PLATFORM:DOWNSTREAM_TIMEOUT')]" />
+            <munit-tools:assert-that expression="#[payload.retryable]"
+                                     is="#[MunitTools::equalTo(true)]" />
+            <!-- No stack trace, no downstream message, no SQL. -->
+            <munit-tools:assert-that expression="#[payload.message]"
+                                     is="#[MunitTools::not(MunitTools::containsString('Exception'))]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="caller-correlation-id-is-adopted"
+                description="A caller-supplied trace id is used, not replaced.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {},
+                    headers: { 'x-correlation-id': 'caller-supplied-id-123' },
+                    method: 'GET', requestPath: '/api/v1/customers/CRM-100005/360'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\360:customer-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[vars.inboundCorrelationId]"
+                                     is="#[MunitTools::equalTo('caller-supplied-id-123')]"
+                                     message="The caller's id must be adopted, not overwritten." />
+        </munit:validation>
+    </munit:test>
+</mule>

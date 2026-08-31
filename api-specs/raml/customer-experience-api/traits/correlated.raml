@@ -1,0 +1,16 @@
+#%RAML 1.0 Trait
+usage: |
+  Applied to every method. The correlation id is the single join key across
+  MuleSoft logs, the Snowflake QUERY_TAG and the AI audit table, so it is a
+  contract obligation and not a logging convention.
+headers:
+  x-correlation-id:
+    type: string
+    required: false
+    maxLength: 128
+    description: Supplied by the caller, or minted by the platform. Always echoed.
+responses:
+  200:
+    headers:
+      x-correlation-id: {type: string}
+      x-response-time-ms: {type: string, required: false}

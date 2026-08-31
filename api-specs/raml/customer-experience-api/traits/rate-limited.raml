@@ -1,0 +1,15 @@
+#%RAML 1.0 Trait
+usage: |
+  Enforced by an SLA-based rate-limiting policy in API Manager, not in the
+  application. Documented here because a consumer must be able to see its own
+  limits and handle 429 correctly.
+responses:
+  429:
+    description: Rate limit exceeded for this client's SLA tier.
+    headers:
+      Retry-After: {type: integer, description: Seconds to wait before retrying.}
+      X-RateLimit-Limit: {type: integer}
+      X-RateLimit-Remaining: {type: integer}
+    body:
+      application/json:
+        type: !include ../dataTypes/error.raml

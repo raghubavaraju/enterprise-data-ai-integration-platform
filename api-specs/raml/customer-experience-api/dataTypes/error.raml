@@ -1,0 +1,18 @@
+#%RAML 1.0 DataType
+type: object
+description: Canonical platform error. Clients branch on errorCode, never on message.
+properties:
+  errorCode:
+    type: string
+    pattern: ^[A-Z]+:[A-Z_]+$
+    example: PLATFORM:RESOURCE_NOT_FOUND
+  message:
+    type: string
+    description: Never contains a stack trace, a downstream error verbatim, or customer data.
+  correlationId: string
+  timestamp: datetime
+  path?: string
+  retryable:
+    type: boolean
+    description: Whether retrying the identical request could succeed.
+  details?: object[]

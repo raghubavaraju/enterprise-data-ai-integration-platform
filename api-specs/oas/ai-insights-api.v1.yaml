@@ -1,0 +1,165 @@
+openapi: 3.0.3
+info:
+  title: Acme AI Insights API
+  version: 1.0.0
+  description: |
+    Experience-layer API for AI-generated customer insight.
+
+    Separate from the Customer Experience API on purpose.  It has a different
+    SLA (seconds, not milliseconds), a different rate limit (generative calls
+    cost money), a different failure mode (a model can be up and still return
+    something unusable), and a different governance regime (every call is
+    audited, some outputs need human approval).  Bundling it into the general
+    customer API would force one set of policies onto two very different
+    workloads.
+servers:
+  - url: https://api.acme-retail.example.com/ai/v1
+  - url: http://localhost:8080/api/v1
+security:
+  - OAuth2ClientCredentials: [ai:invoke]
+paths:
+  /customers/{customerId}/ai-analysis:
+    post:
+      tags: [insights]
+      operationId: generateInsight
+      summary: Generate a grounded insight
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [capability]
+              properties:
+                capability:
+                  type: string
+                  enum: [SUMMARY, CHURN_EXPLANATION, NEXT_BEST_ACTION, SENTIMENT, GROUNDED_QA]
+                question: {type: string, maxLength: 500}
+                forceRefresh: {type: boolean, default: false}
+      responses:
+        '200':
+          description: Generated insight with provenance.
+          content:
+            application/json:
+              schema:
+                $ref: 'customer-experience-api.v1.yaml#/components/schemas/AiInsight'
+        '400': {$ref: '../fragments/error.oas.yaml#/components/responses/BadRequest'}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '429': {$ref: '../fragments/error.oas.yaml#/components/responses/TooManyRequests'}
+        '502':
+          description: >
+            Generation failed, or the output failed the grounding and safety
+            checks. A blocked output is never returned as if it had succeeded.
+          content:
+            application/json:
+              schema: {$ref: '../fragments/error.oas.yaml#/components/schemas/Error'}
+
+  /customers/{customerId}/grounding:
+    get:
+      tags: [governance]
+      operationId: getGroundingFacts
+      summary: Exactly the facts the model is given
+      description: >
+        A governance endpoint, not a debugging convenience.  When a generated
+        statement is challenged, the first question is what the model was
+        actually told, and the answer must be inspectable without re-running the
+        generation.
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Grounding facts and the rendered FACTS block.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerId: {type: string}
+                  facts: {type: object, additionalProperties: true}
+                  renderedFactsBlock: {type: string}
+                  correlationId: {type: string}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /capabilities:
+    get:
+      tags: [operations]
+      operationId: listCapabilities
+      summary: Capabilities, prompt versions and the approved-action list
+      responses:
+        '200':
+          description: Registry contents.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  capabilities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        capability: {type: string}
+                        promptTemplateId: {type: string}
+                        promptVersion: {type: string}
+                        temperature: {type: number}
+                        maxOutputTokens: {type: integer}
+                  approvedActions:
+                    type: array
+                    description: >
+                      The closed set of actions a recommendation may return. A
+                      model that returns anything else has its output suppressed.
+                    items:
+                      type: object
+                      properties:
+                        code: {type: string}
+                        description: {type: string}
+                  promptLibraryVersion: {type: string}
+
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+  /audit/recent:
+    get:
+      tags: [governance]
+      operationId: getRecentAudit
+      summary: Recent generative calls, with token counts and estimated cost
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Audit entries, newest first.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        requestId: {type: string}
+                        correlationId: {type: string}
+                        capability: {type: string}
+                        provider: {type: string}
+                        model: {type: string}
+                        inputTokens: {type: integer}
+                        outputTokens: {type: integer}
+                        estimatedCostUsd: {type: number}
+                        latencyMs: {type: integer}
+                        outcome:
+                          type: string
+                          enum: [SUCCESS, BLOCKED, ERROR, FALLBACK]
+                        requestedAt: {type: string, format: date-time}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'

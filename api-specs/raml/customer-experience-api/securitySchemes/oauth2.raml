@@ -1,0 +1,28 @@
+#%RAML 1.0 SecurityScheme
+type: OAuth 2.0
+description: |
+  Machine-to-machine only. There is no authorization-code flow: every consumer
+  of this platform is a system, and end-user identity is carried in the calling
+  application's own session instead of in this token.
+
+  In a deployed environment the token is issued by Anypoint Access Management or
+  the enterprise IdP and validated by an API Manager JWT policy. No Mule
+  application ever issues a token.
+describedBy:
+  headers:
+    Authorization:
+      type: string
+      example: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+  responses:
+    401:
+      description: Missing, expired or invalid token.
+    403:
+      description: Valid token without the required scope.
+settings:
+  accessTokenUri: https://auth.acme-retail.example.com/oauth/token
+  authorizationGrants: [client_credentials]
+  scopes:
+    - customer:read
+    - insights:read
+    - ai:invoke
+    - pii:read

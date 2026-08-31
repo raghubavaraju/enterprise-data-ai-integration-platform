@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit
+        http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools
+        http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      MUnit suite = CRM System API
+      ==========================================================================
+      A system API has no business logic to test. What it has is a translation
+      contract, and the tests that matter are the ones that fail when somebody
+      "simplifies" that translation:
+
+        1. every CRM field name is translated to the canonical name
+        2. coded values are expanded, not passed through
+        3. the CRM's dd/MM/yyyy date becomes ISO, and a null stays null
+        4. the CRM's naive timestamp is stamped UTC here, not downstream
+        5. an empty address list for a real customer is 200 with []
+        6. an empty address list for an absent customer is 404
+        7. a CRM 404 is mapped to ACME:NOT_FOUND, not propagated as HTTP:NOT_FOUND
+
+      Test 5 and 6 are the whole reason this application exists: the CRM answers
+      both cases identically, and the ambiguity is resolved once, here.
+    -->
+
+    <munit:config name="crm-system-api-test-suite.xml" />
+
+    <!-- =================================================================== -->
+    <munit:test name="crm-record-is-translated-to-the-canonical-vocabulary"
+                description="Field names, coded values and date formats all cross the boundary.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="CRM backend" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value='#[output application/json ---
+                        {
+                          CustomerNumber: "CRM-100005",
+                          GivenName: "  Dana  ",
+                          FamilyName: "Whitfield",
+                          EmailAddr: "  Dana.Whitfield@EXAMPLE.COM ",
+                          PhoneNbr: "(555) 010-2233",
+                          DOB: "14/03/1984",
+                          SegmentCd: "PRM",
+                          PrefChannel: "email",
+                          OptInFlag: "Y",
+                          RecStatus: "A",
+                          CreatedTs: "2021-06-02T09:14:00"
+                        }]' mediaType="application/json" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:payload value="#[null]" />
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-100005"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId):crm-system-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <!-- The business key changes name at exactly this boundary. -->
+            <munit-tools:assert-that expression="#[payload.customerId]"
+                                     is="#[MunitTools::equalTo('CRM-100005')]"
+                                     message="CustomerNumber must surface as customerId" />
+            <!-- Trimming and case folding happen once, here, so no consumer has
+                 to guess whether an e-mail comparison is case sensitive. -->
+            <munit-tools:assert-that expression="#[payload.firstName]"
+                                     is="#[MunitTools::equalTo('Dana')]" />
+            <munit-tools:assert-that expression="#[payload.email]"
+                                     is="#[MunitTools::equalTo('dana.whitfield@example.com')]" />
+            <munit-tools:assert-that expression="#[payload.phone]"
+                                     is="#[MunitTools::equalTo('5550102233')]"
+                                     message="Punctuation must be stripped at the boundary" />
+            <!-- A coded value that reaches a consumer is a coded value every
+                 consumer must learn. -->
+            <munit-tools:assert-that expression="#[payload.segment]"
+                                     is="#[MunitTools::equalTo('PREMIUM')]" />
+            <munit-tools:assert-that expression="#[payload.status]"
+                                     is="#[MunitTools::equalTo('ACTIVE')]" />
+            <munit-tools:assert-that expression="#[payload.preferredChannel]"
+                                     is="#[MunitTools::equalTo('EMAIL')]" />
+            <munit-tools:assert-that expression="#[payload.marketingOptIn]"
+                                     is="#[MunitTools::equalTo(true)]" />
+            <!-- dd/MM/yyyy is a CRM detail. ISO is the contract. -->
+            <munit-tools:assert-that expression="#[payload.birthDate]"
+                                     is="#[MunitTools::equalTo('1984-03-14')]" />
+            <!-- The CRM emits local time with no offset; the timezone is known
+                 only here, so the Z is added only here. -->
+            <munit-tools:assert-that expression="#[payload.createdAt]"
+                                     is="#[MunitTools::equalTo('2021-06-02T09:14:00Z')]" />
+            <munit-tools:assert-that expression="#[payload.sourceSystem]"
+                                     is="#[MunitTools::equalTo('CRM')]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="unknown-coded-values-degrade-rather-than-leak"
+                description="A code the CRM adds tomorrow must not reach a consumer verbatim.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="CRM backend" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value='#[output application/json ---
+                        {
+                          CustomerNumber: "CRM-100006",
+                          GivenName: "Sam", FamilyName: "Okafor",
+                          EmailAddr: "sam.okafor@example.com",
+                          SegmentCd: "XYZ", RecStatus: "Q", DOB: null
+                        }]' mediaType="application/json" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-100006"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId):crm-system-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <!-- Degrading to a declared enum value keeps the contract honest.
+                 Passing 'XYZ' through would make every consumer's enum a lie. -->
+            <munit-tools:assert-that expression="#[payload.segment]"
+                                     is="#[MunitTools::equalTo('UNCLASSIFIED')]" />
+            <munit-tools:assert-that expression="#[payload.status]"
+                                     is="#[MunitTools::equalTo('UNKNOWN')]" />
+            <!-- A null date must stay null, not become the epoch. -->
+            <munit-tools:assert-that expression="#[payload.birthDate]"
+                                     is="#[MunitTools::nullValue()]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="no-addresses-for-a-real-customer-is-an-empty-list"
+                description="The CRM's ambiguous empty response is resolved, not propagated.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="CRM backend - addresses" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[[]]" mediaType="application/json" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <!-- The existence check succeeds, so the empty list is genuine. -->
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Confirm customer exists" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value='#[output application/json ---
+                        {CustomerNumber: "CRM-100005"}]' mediaType="application/json" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-100005"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\addresses:crm-system-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[sizeOf(payload)]"
+                                     is="#[MunitTools::equalTo(0)]"
+                                     message="A real customer with no addresses is 200 with []" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="no-addresses-for-an-absent-customer-is-not-found"
+                description="The same CRM response, the opposite answer - which is the point."
+                expectedErrorType="ACME:NOT_FOUND">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="CRM backend - addresses" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[[]]" mediaType="application/json" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+            <!-- The existence check 404s, so the empty list meant "no such
+                 customer" all along. -->
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name"
+                                                whereValue="Confirm customer exists" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:NOT_FOUND" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-404404"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId)\addresses:crm-system-api-config" />
+        </munit:execution>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="a-crm-404-is-mapped-to-the-platform-error-vocabulary"
+                description="Consumers must never see a transport error type from a backend."
+                expectedErrorType="ACME:NOT_FOUND">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="CRM backend" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:NOT_FOUND" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-404404"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId):crm-system-api-config" />
+        </munit:execution>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="a-crm-timeout-is-mapped-to-a-retryable-platform-error"
+                description="The process layer decides whether to retry; it needs the right type to decide."
+                expectedErrorType="ACME:DOWNSTREAM_TIMEOUT">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute attributeName="doc:name" whereValue="CRM backend" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:error typeId="HTTP:TIMEOUT" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value='#[{uriParams: {customerId: "CRM-100005"}}]' />
+            </munit:set-event>
+            <flow-ref name="get:\customers\(customerId):crm-system-api-config" />
+        </munit:execution>
+    </munit:test>
+
+</mule>

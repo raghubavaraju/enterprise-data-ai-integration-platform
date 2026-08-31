@@ -1,0 +1,9 @@
+# TEMPLATE ONLY - the real file is encrypted and is not committed.
+crm:
+  username: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+  password: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+tls:
+  truststore: {password: "![ENCRYPTED_VALUE_PLACEHOLDER]"}
+  keystore:
+    password: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+    keyPassword: "![ENCRYPTED_VALUE_PLACEHOLDER]"

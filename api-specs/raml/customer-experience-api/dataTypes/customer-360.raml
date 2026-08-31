@@ -1,0 +1,89 @@
+#%RAML 1.0 DataType
+uses:
+  common: ../libraries/common.raml
+type: object
+properties:
+  customerId: string
+  profile:
+    properties:
+      fullName?: string
+      email?: string
+      phone?: string
+      birthDate?: string
+      segment?: {type: string, enum: [CONSUMER, SMALL_BUSINESS, PREMIUM]}
+      status?: {type: string, enum: [ACTIVE, INACTIVE, CLOSED]}
+      preferredChannel?: string
+      marketingOptIn?: boolean
+      customerSince?: date-only
+      tenureDays?: integer
+      location?:
+        properties:
+          city?: string
+          state?: string
+          country?: string
+      _masked?: boolean
+      _maskedFields?: string[]
+  orders?:
+    type: array
+    items:
+      properties:
+        orderId: string
+        orderDate: date-only
+        orderStatus: {type: string, enum: [COMPLETED, SHIPPED, CANCELLED, RETURNED, PENDING]}
+        channel?: string
+        currencyCode: string
+        orderAmount: number
+        discountAmount?: number
+        shippingAmount?: number
+        netAmount:
+          type: number
+          description: Amount less discount. The revenue figure used everywhere.
+        lineCount?: integer
+        totalUnits?: integer
+  support?:
+    type: array
+    items:
+      properties:
+        caseId: string
+        caseType?: string
+        priority?: {type: string, enum: [LOW, MEDIUM, HIGH, CRITICAL]}
+        status?: {type: string, enum: [OPEN, RESOLVED]}
+        openedAt?: datetime-only
+        resolvedAt?: datetime-only
+        resolutionHours?: number
+        csatScore?: {type: integer, minimum: 1, maximum: 5}
+        reopenCount?: integer
+        isSlaBreached?: boolean
+  loyalty?:
+    properties:
+      tier?: {type: string, enum: [NONE, BRONZE, SILVER, GOLD, PLATINUM]}
+      status?: {type: string, enum: [ACTIVE, SUSPENDED, NOT_ENROLLED]}
+      pointsBalance?: integer
+      enrolledAt?: date-only
+  analytics?:
+    properties:
+      totalOrders?: integer
+      totalNetRevenue?: number
+      avgOrderValue?: number
+      orderFrequencyPerYear?: number
+      lastOrderDate?: date-only
+      daysSinceLastOrder?: integer
+      revenueLast365d?: number
+      returnRate?: number
+      totalCases?: integer
+      openCases?: integer
+      avgCsat?: number
+      topCaseType?: string
+      engagementScore?:
+        type: number
+        description: 0-100, deterministic. Weights in docs/data-architecture.md.
+      customerLifetimeValue?:
+        type: number
+        description: Realised revenue to date. NOT a prediction.
+      predictedClv12m?:
+        type: number
+        description: Projected next-12-month value. Always labelled as predicted.
+      valueTier?: {type: string, enum: [HIGH, MEDIUM, LOW]}
+  churnRisk?: !include churn-risk.raml
+  aiInsights?: object
+  meta: common.ResponseMeta
