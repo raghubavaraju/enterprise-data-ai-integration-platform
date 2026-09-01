@@ -120,11 +120,11 @@ def _render(value: Any) -> str | None:
         return None
     if isinstance(value, bool):
         return "true" if value else "false"
-    if isinstance(value, (datetime, date)):
+    if isinstance(value, datetime | date):
         return value.isoformat()
     if isinstance(value, Decimal):
         return format(value, "f")
-    if isinstance(value, (list, tuple)):
+    if isinstance(value, list | tuple):
         return "[" + ",".join("null" if v is None else str(v) for v in value) + "]"
     return str(value)
 
@@ -149,7 +149,7 @@ def _snowflake_type(sample: Any, declared: str) -> str:
         return "TIMESTAMP_NTZ"
     if isinstance(sample, date):
         return "DATE"
-    if isinstance(sample, (list, tuple)):
+    if isinstance(sample, list | tuple):
         return "ARRAY"
     if sample is None:
         t = str(declared).upper()
