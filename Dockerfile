@@ -1,7 +1,7 @@
 # Single image, many roles.  Each service in docker-compose.yml runs the same
 # image with a different module and port - the same shape as deploying several
 # Mule applications from one build pipeline.
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
