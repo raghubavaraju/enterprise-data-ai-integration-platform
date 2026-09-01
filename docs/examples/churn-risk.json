@@ -1,0 +1,32 @@
+{
+    "customerId": "CRM-100046",
+    "churnProbability": 0.7629,
+    "riskBand": "CRITICAL",
+    "model": {
+        "name": "acme-churn-baseline",
+        "version": "v1.2.0",
+        "method": "RULE_BASED",
+        "featureSetVersion": "v1.2.0"
+    },
+    "drivers": [
+        {
+            "rank": 1,
+            "driver": "PURCHASE_RECENCY",
+            "contribution": 0.3
+        },
+        {
+            "rank": 2,
+            "driver": "DECLINING_ORDER_TREND",
+            "contribution": 0.2
+        },
+        {
+            "rank": 3,
+            "driver": "LOW_SATISFACTION",
+            "contribution": 0.1
+        }
+    ],
+    "scoreDate": "2026-08-28",
+    "meta": {
+        "correlationId": "acme-2d8f2610-febb-4ff0-9452-540d677a2aa8"
+    }
+}

@@ -1,0 +1,9 @@
+{
+    "errorCode": "PLATFORM:RESOURCE_NOT_FOUND",
+    "message": "process-api has no record for /api/v1/customers/CRM-000000/360.",
+    "correlationId": "acme-5b19ddd4-342e-4327-8d00-85cc74faadd2",
+    "timestamp": "2026-08-28T21:14:35.195152Z",
+    "path": "/api/v1/customers/CRM-000000/360",
+    "retryable": false,
+    "details": []
+}

@@ -1,0 +1,181 @@
+{
+    "customerId": "CRM-100005",
+    "profile": {
+        "fullName": "Sofia C***",
+        "email": "s*********@example.com",
+        "phone": "***-***-1005",
+        "birthDate": "1960-**-**",
+        "segment": "PREMIUM",
+        "status": "ACTIVE",
+        "preferredChannel": "WEB",
+        "marketingOptIn": false,
+        "customerSince": "2024-12-07",
+        "tenureDays": 629,
+        "location": {
+            "city": "Atlanta",
+            "state": "GA",
+            "country": "US"
+        },
+        "_masked": true,
+        "_maskedFields": [
+            "birthDate",
+            "email",
+            "fullName",
+            "phone"
+        ]
+    },
+    "orders": [
+        {
+            "orderId": "ORD-200026",
+            "orderDate": "2026-06-06",
+            "orderStatus": "COMPLETED",
+            "channel": "WEB",
+            "currencyCode": "USD",
+            "orderAmount": 199.75,
+            "discountAmount": 0,
+            "shippingAmount": 5.05,
+            "netAmount": 199.75,
+            "lineCount": 1,
+            "totalUnits": 5
+        },
+        {
+            "orderId": "ORD-200016",
+            "orderDate": "2026-05-25",
+            "orderStatus": "COMPLETED",
+            "channel": "MARKETPLACE",
+            "currencyCode": "USD",
+            "orderAmount": 283.89,
+            "discountAmount": 28,
+            "shippingAmount": 4.89,
+            "netAmount": 255.5,
+            "lineCount": 3,
+            "totalUnits": 12
+        }
+    ],
+    "support": [
+        {
+            "caseId": "CAS-300009",
+            "caseType": "BILLING",
+            "priority": "LOW",
+            "subject": "Billing",
+            "status": "RESOLVED",
+            "channel": "CHAT",
+            "openedAt": "2026-02-03T00:00:00",
+            "resolvedAt": "2026-02-07T00:00:00",
+            "resolutionHours": 96,
+            "csatScore": 4,
+            "reopenCount": 0,
+            "isSlaBreached": true
+        },
+        {
+            "caseId": "CAS-300012",
+            "caseType": "GENERAL_ENQUIRY",
+            "priority": "HIGH",
+            "subject": "General Enquiry",
+            "status": "RESOLVED",
+            "channel": "PHONE",
+            "openedAt": "2026-02-01T00:00:00",
+            "resolvedAt": "2026-02-07T00:00:00",
+            "resolutionHours": 144,
+            "csatScore": 4,
+            "reopenCount": 0,
+            "isSlaBreached": true
+        },
+        {
+            "caseId": "CAS-300010",
+            "caseType": "DELIVERY_ISSUE",
+            "priority": "HIGH",
+            "subject": "Delivery Issue",
+            "status": "OPEN",
+            "channel": "CHAT",
+            "openedAt": "2025-10-29T00:00:00",
+            "resolvedAt": null,
+            "resolutionHours": null,
+            "csatScore": null,
+            "reopenCount": 0,
+            "isSlaBreached": true
+        },
+        {
+            "caseId": "CAS-300011",
+            "caseType": "DELIVERY_ISSUE",
+            "priority": "HIGH",
+            "subject": "Delivery Issue",
+            "status": "RESOLVED",
+            "channel": "WEB_FORM",
+            "openedAt": "2025-07-20T00:00:00",
+            "resolvedAt": "2025-08-08T00:00:00",
+            "resolutionHours": 456,
+            "csatScore": 2,
+            "reopenCount": 0,
+            "isSlaBreached": true
+        }
+    ],
+    "loyalty": {
+        "tier": "BRONZE",
+        "status": "ACTIVE",
+        "pointsBalance": 14085,
+        "enrolledAt": "2021-07-07"
+    },
+    "analytics": {
+        "totalOrders": 15,
+        "totalNetRevenue": 3070.26,
+        "avgOrderValue": 219.3,
+        "orderFrequencyPerYear": 20.5056,
+        "lastOrderDate": "2026-06-06",
+        "daysSinceLastOrder": 83,
+        "revenueLast365d": 3070.26,
+        "returnRate": 0,
+        "totalCases": 4,
+        "openCases": 1,
+        "avgCsat": 3.33,
+        "topCaseType": "DELIVERY_ISSUE",
+        "engagementScore": 63.67,
+        "customerLifetimeValue": 3070.26,
+        "predictedClv12m": 2703.52,
+        "valueTier": "HIGH"
+    },
+    "aiInsights": null,
+    "churnRisk": {
+        "churnProbability": 0.3988,
+        "riskBand": "MEDIUM",
+        "model": {
+            "name": "acme-churn-baseline",
+            "version": "v1.2.0",
+            "method": "RULE_BASED",
+            "featureSetVersion": "v1.2.0"
+        },
+        "drivers": [
+            {
+                "rank": 1,
+                "driver": "DECLINING_ORDER_TREND",
+                "contribution": 0.1563
+            },
+            {
+                "rank": 2,
+                "driver": "PURCHASE_RECENCY",
+                "contribution": 0.1038
+            },
+            {
+                "rank": 3,
+                "driver": "LOYALTY_INACTIVITY",
+                "contribution": 0.08
+            }
+        ],
+        "scoreDate": "2026-08-28"
+    },
+    "meta": {
+        "partial": false,
+        "degradedFields": [],
+        "dataCompletenessScore": 100,
+        "contributingSources": [
+            "CRM",
+            "OMS",
+            "SUPPORT",
+            "LOYALTY",
+            "ENGAGEMENT"
+        ],
+        "asOf": "2026-08-28T21:08:04.268000",
+        "correlationId": "acme-a4800b67-183a-4fcb-bd39-aab6cce90eb7",
+        "elapsedMs": 823.8
+    }
+}

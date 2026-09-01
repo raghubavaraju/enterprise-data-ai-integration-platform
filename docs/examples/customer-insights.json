@@ -1,0 +1,95 @@
+{
+    "customerId": "CRM-100005",
+    "churnRisk": {
+        "churnProbability": 0.3988,
+        "riskBand": "MEDIUM",
+        "model": {
+            "name": "acme-churn-baseline",
+            "version": "v1.2.0",
+            "method": "RULE_BASED",
+            "featureSetVersion": "v1.2.0"
+        },
+        "drivers": [
+            {
+                "rank": 1,
+                "driver": "DECLINING_ORDER_TREND",
+                "contribution": 0.1563
+            },
+            {
+                "rank": 2,
+                "driver": "PURCHASE_RECENCY",
+                "contribution": 0.1038
+            },
+            {
+                "rank": 3,
+                "driver": "LOYALTY_INACTIVITY",
+                "contribution": 0.08
+            }
+        ],
+        "scoreDate": "2026-08-28"
+    },
+    "insights": {
+        "generated": [
+            {
+                "type": "SUMMARY",
+                "text": "The customer has been with Acme for 629 days and is in the PREMIUM segment. They have placed 15 orders worth 3070.26 in total, averaging 219.3 per order. Their last order was 83 days ago and the recent order trend ratio is 0.2183. Support history shows 4 cases (1 open) with an average satisfaction score of 3.33. Loyalty standing is BRONZE with 14085 points. Most important for this conversation: churn risk is MEDIUM (probability 0.3988), driven mainly by DECLINING_ORDER_TREND.",
+                "structured": null,
+                "confidence": 1,
+                "requiresHumanApproval": false,
+                "reviewStatus": "AUTO_APPROVED",
+                "generatedBy": {
+                    "provider": "local",
+                    "model": "acme-local-deterministic-v1"
+                },
+                "sources": [],
+                "generatedAt": "2026-08-28T21:08:14.705015",
+                "cached": true,
+                "disclaimer": "AI-generated from Acme's own customer data. Verify before acting on it."
+            },
+            {
+                "type": "CHURN_EXPLANATION",
+                "text": "Churn risk is MEDIUM with a probability of 0.3988. The main reasons are that their recent order rate has fallen (trend ratio 0.2183); they have not ordered for 83 days; their loyalty account has been inactive.",
+                "structured": null,
+                "confidence": 1,
+                "requiresHumanApproval": false,
+                "reviewStatus": "AUTO_APPROVED",
+                "generatedBy": {
+                    "provider": "local",
+                    "model": "acme-local-deterministic-v1"
+                },
+                "sources": [],
+                "generatedAt": "2026-08-28T21:08:15.282269",
+                "cached": true,
+                "disclaimer": "AI-generated from Acme's own customer data. Verify before acting on it."
+            },
+            {
+                "type": "NEXT_BEST_ACTION",
+                "text": "{\"action\": \"RESOLVE_OPEN_CASE\", \"priority\": \"HIGH\", \"justification\": \"the customer has 1 open support case(s), which must be closed before any offer\"}",
+                "structured": {
+                    "action": "RESOLVE_OPEN_CASE",
+                    "priority": "HIGH",
+                    "justification": "the customer has 1 open support case(s), which must be closed before any offer"
+                },
+                "confidence": 0.9495,
+                "requiresHumanApproval": true,
+                "reviewStatus": "PENDING_REVIEW",
+                "generatedBy": {
+                    "provider": "local",
+                    "model": "acme-local-deterministic-v1"
+                },
+                "sources": [
+                    "KB-009"
+                ],
+                "generatedAt": "2026-08-28T21:14:34.328234Z",
+                "cached": false,
+                "disclaimer": "AI-generated from Acme's own customer data. Verify before acting on it."
+            }
+        ],
+        "unavailable": []
+    },
+    "meta": {
+        "partial": false,
+        "degradedFields": [],
+        "correlationId": "acme-b3d3dc0f-27f4-488d-bfbf-df818f852747"
+    }
+}
