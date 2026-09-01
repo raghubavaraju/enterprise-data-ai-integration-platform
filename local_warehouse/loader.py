@@ -95,10 +95,10 @@ def load_raw(batch_id: str | None = None, correlation_id: str | None = None) -> 
             rows.append(values)
         # noqa: S608 - `table` is a key of MAPPING, a literal in this module;
         # the row values are always bound, never interpolated.
-        con.execute(f"DELETE FROM ACME_EDP.RAW.{table}")  # noqa: S608
+        con.execute(f"DELETE FROM ACME_EDP.RAW.{table}")  # noqa: S608  # nosec B608
         placeholders = ", ".join("?" for _ in cols)
         con.executemany(
-            f"INSERT INTO ACME_EDP.RAW.{table} ({', '.join(cols)}) "  # noqa: S608
+            f"INSERT INTO ACME_EDP.RAW.{table} ({', '.join(cols)}) "  # noqa: S608  # nosec B608
             f"VALUES ({placeholders})", rows)
         counts[table] = len(rows)
 

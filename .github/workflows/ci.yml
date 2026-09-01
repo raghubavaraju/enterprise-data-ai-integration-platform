@@ -1,0 +1,427 @@
+# =============================================================================
+# Continuous integration and delivery
+# =============================================================================
+#     commit -> build -> unit tests -> API validation -> security scan
+#            -> code quality -> data quality -> AI evaluation -> package -> deploy
+#
+# Design notes worth defending:
+#
+#   * The fast, cheap gates run first and in parallel. A developer who has
+#     mis-formatted a file learns in 40 seconds, not after a 12-minute Mule build.
+#   * Nothing that needs a cloud account is required for a green build on a pull
+#     request. A contributor without an Anypoint licence or a Snowflake account
+#     can still run and pass the entire suite - which is the difference between
+#     a repository people contribute to and one they read.
+#   * Deployment is gated on an environment approval and uses OIDC-issued or
+#     secret-store credentials. No long-lived credential appears in this file.
+#   * The AI evaluation suite is a *gate*, not a report. A change that makes
+#     generation less grounded or less safe fails the build.
+# =============================================================================
+name: ci
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_environment:
+        description: Environment to deploy to
+        type: choice
+        options: [none, dev, uat, prod]
+        default: none
+
+permissions:
+  contents: read
+  id-token: write        # OIDC, so no static cloud credential is needed
+  security-events: write # to publish scanner findings to the security tab
+
+env:
+  PYTHON_VERSION: '3.11'
+  JAVA_VERSION: '17'
+  PYTHONPATH: ${{ github.workspace }}:${{ github.workspace }}/services
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ---------------------------------------------------------------- quality
+  code-quality:
+    name: Code quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Ruff
+        run: python -m ruff check services local_warehouse scripts tests
+      - name: SQL conventions
+        run: python scripts/lint_sql.py
+      - name: Mule XML is well-formed
+        run: |
+          python - <<'PY'
+          import pathlib, sys, xml.dom.minidom
+          bad = []
+          for p in sorted(pathlib.Path("mule").rglob("*.xml")):
+              try:
+                  xml.dom.minidom.parse(str(p))
+              except Exception as exc:
+                  bad.append(f"{p}: {exc}")
+          print("\n".join(bad) if bad else "all Mule XML is well-formed")
+          sys.exit(1 if bad else 0)
+          PY
+
+  api-contracts:
+    name: API contract validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Validate specifications and enforce API governance
+        run: python scripts/validate_api_specs.py
+
+  security-scan:
+    name: Security scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0        # gitleaks needs history to scan the whole diff
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt bandit pip-audit
+
+      - name: Static analysis (bandit)
+        run: python -m bandit -r services local_warehouse -ll -f screen
+
+      - name: Dependency vulnerabilities (pip-audit)
+        run: python -m pip_audit -r services/requirements.txt --strict
+        continue-on-error: true   # advisory: a new CVE must not block an unrelated fix
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: No credentials in configuration
+        run: |
+          python - <<'PY'
+          import pathlib, re, sys
+          # The rule this enforces: a real secret never appears in the repository,
+          # only the *name* of the property that holds it. Encrypted placeholders
+          # and local-development defaults are explicitly allowed.
+          patterns = [
+              (re.compile(r"(?i)(password|secret|token|api[_-]?key)\s*[:=]\s*['\"](?!"
+                          r"\!\[ENCRYPTED|\$\{|change-me-local-only|local-development)"
+                          r"[^'\"\s]{8,}['\"]"), "hard-coded credential"),
+              (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"), "private key material"),
+              (re.compile(r"AKIA[0-9A-Z]{16}"), "AWS access key id"),
+              (re.compile(r"(?i)snowflakecomputing\.com['\"]?\s*[:=]"), "hard-coded Snowflake host"),
+          ]
+          skip = {".git", "node_modules", ".venv", "__pycache__", "target"}
+          findings = []
+          for path in pathlib.Path(".").rglob("*"):
+              if not path.is_file() or set(path.parts) & skip:
+                  continue
+              if path.suffix.lower() in {".png", ".jpg", ".duckdb", ".jks", ".zip"}:
+                  continue
+              try:
+                  text = path.read_text(errors="ignore")
+              except OSError:
+                  continue
+              for pattern, label in patterns:
+                  for m in pattern.finditer(text):
+                      findings.append(f"{path}: {label}: {m.group(0)[:60]}")
+          print("\n".join(findings) if findings else "no credentials found in the repository")
+          sys.exit(1 if findings else 0)
+          PY
+
+  # ------------------------------------------------------------------ tests
+  unit-and-data-tests:
+    name: Unit, data and API tests
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+
+      - name: Sample data is reproducible
+        # The dataset is deterministic by design. If regenerating it produces a
+        # diff, either the generator changed or the committed files were edited
+        # by hand - both need to be deliberate.
+        run: |
+          python scripts/generate_sample_data.py
+          git diff --exit-code sample-data/ || {
+            echo "::error::sample-data/ is out of date; run 'make data' and commit the result"
+            exit 1
+          }
+
+      - name: Build the local warehouse
+        run: make build
+
+      - name: Unit tests
+        run: python -m pytest tests/unit -q --junitxml=reports/unit.xml
+
+      - name: Warehouse and data quality tests
+        run: python -m pytest tests/data -q --junitxml=reports/data.xml
+
+      - name: API contract and behaviour tests
+        run: python -m pytest tests/api -q --junitxml=reports/api.xml
+
+      - name: Coverage
+        run: |
+          python -m pytest tests/unit tests/api tests/data \
+            --cov=services --cov=local_warehouse \
+            --cov-report=term-missing --cov-report=xml \
+            --cov-fail-under=75
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-reports
+          path: |
+            reports/
+            coverage.xml
+
+  ai-evaluation:
+    name: AI evaluation gate
+    runs-on: ubuntu-latest
+    needs: [code-quality]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - run: make build
+
+      - name: Groundedness, relevance, safety, consistency, PII leakage
+        # These thresholds are policy, not preference. A change that makes
+        # generation less grounded or less safe does not ship.
+        run: python -m pytest tests/ai -q --junitxml=reports/ai-eval.xml
+
+      - name: Publish the evaluation summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os, pathlib
+          from local_warehouse.warehouse import shared
+          rows = shared().execute("""
+              SELECT METRIC_NAME, ROUND(AVG(METRIC_SCORE), 4), MIN(METRIC_SCORE),
+                     SUM(CASE WHEN PASSED THEN 0 ELSE 1 END), COUNT(*)
+              FROM ACME_EDP.AI.AI_EVALUATION_RESULT GROUP BY METRIC_NAME ORDER BY 1""").fetchall()
+          lines = ["## AI evaluation", "",
+                   "| Metric | Mean | Min | Failures | Evaluated |",
+                   "|---|---:|---:|---:|---:|"]
+          lines += [f"| {m} | {mean} | {mn} | {fails} | {n} |" for m, mean, mn, fails, n in rows]
+          summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          summary.write_text("\n".join(lines) + "\n")
+          print("\n".join(lines))
+          PY
+        env:
+          WAREHOUSE_ACCESS: direct
+          LOCAL_WAREHOUSE_PATH: local_warehouse/acme_edp.duckdb
+
+  integration-tests:
+    name: Integration tests (full stack)
+    runs-on: ubuntu-latest
+    needs: [unit-and-data-tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Start the platform
+        run: |
+          cp .env.example .env
+          ./scripts/run_local.sh
+      - name: Smoke test
+        run: ./scripts/smoke_test.sh
+      - name: Integration suite
+        run: python -m pytest tests/integration -q --junitxml=reports/integration.xml
+      - name: Service logs
+        if: failure()
+        run: tail -n 200 .run/*.log
+      - name: Stop the platform
+        if: always()
+        run: ./scripts/run_local.sh stop
+
+  # --------------------------------------------------------- MuleSoft build
+  # A job cannot test a secret directly in its `if`, so one is turned into an
+  # output here. Without this the Mule job fails on any checkout that has no
+  # Anypoint subscription, which includes every fork and this repository until
+  # credentials are configured.
+  credentials-available:
+    name: Check optional credentials
+    runs-on: ubuntu-latest
+    outputs:
+      anypoint: ${{ steps.probe.outputs.anypoint }}
+    steps:
+      - id: probe
+        env:
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+        run: |
+          if [ -n "$ANYPOINT_CLIENT_ID" ]; then
+            echo "anypoint=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "anypoint=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANYPOINT_CLIENT_ID is not configured; the Mule build and MUnit job will be skipped."
+          fi
+
+  mule-build:
+    name: MuleSoft build and MUnit
+    runs-on: ubuntu-latest
+    needs: [code-quality, api-contracts, credentials-available]
+    # Requires Anypoint Exchange credentials to resolve the API specification
+    # dependencies and the MUnit plugin. Skipped where they are absent, on a
+    # fork or here, because a build that cannot succeed should not report red.
+    if: ${{ needs.credentials-available.outputs.anypoint == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
+    strategy:
+      fail-fast: false
+      matrix:
+        application:
+          - mule/experience-api
+          - mule/process-api
+          - mule/system-api/snowflake-data-api
+          - mule/system-api/crm-system-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Configure the Anypoint Exchange repository
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml <<'XML'
+          <settings>
+            <servers>
+              <server>
+                <id>anypoint-exchange-v3</id>
+                <username>~~~Client~~~</username>
+                <password>${env.ANYPOINT_CLIENT_ID}~?~${env.ANYPOINT_CLIENT_SECRET}</password>
+              </server>
+            </servers>
+          </settings>
+          XML
+        env:
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+
+      - name: Build and run MUnit
+        working-directory: ${{ matrix.application }}
+        run: mvn -B -ntp clean package -Pdev
+        env:
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          MAVEN_OPTS: -Xmx2048m
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: munit-${{ strategy.job-index }}
+          path: |
+            ${{ matrix.application }}/target/*.jar
+            ${{ matrix.application }}/target/munit-reports/
+
+  # -------------------------------------------------------------- packaging
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    needs: [unit-and-data-tests, ai-evaluation, security-scan, api-contracts]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the container image
+        run: docker build -t acme-edp:${{ github.sha }} .
+      - name: Scan the image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: acme-edp:${{ github.sha }}
+          format: sarif
+          output: trivy.sarif
+          severity: HIGH,CRITICAL
+          exit-code: '0'      # report, do not block: base-image CVEs arrive daily
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy.sarif
+
+  # ------------------------------------------------------------- deployment
+  deploy:
+    name: Deploy (${{ github.event.inputs.deploy_environment }})
+    runs-on: ubuntu-latest
+    needs: [package, mule-build, integration-tests]
+    if: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_environment != 'none' }}
+    environment:
+      # A GitHub environment carries the approval gate and the environment-scoped
+      # secrets. Production requires a reviewer; dev does not.
+      name: ${{ github.event.inputs.deploy_environment }}
+    strategy:
+      max-parallel: 1     # deploy in dependency order: system, then process, then experience
+      matrix:
+        application:
+          - mule/system-api/crm-system-api
+          - mule/system-api/snowflake-data-api
+          - mule/process-api
+          - mule/experience-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Deploy to CloudHub 2.0
+        working-directory: ${{ matrix.application }}
+        run: |
+          mvn -B -ntp deploy -DmuleDeploy \
+            -P${{ github.event.inputs.deploy_environment }} \
+            -Danypoint.client.id="$ANYPOINT_CLIENT_ID" \
+            -Danypoint.client.secret="$ANYPOINT_CLIENT_SECRET" \
+            -Danypoint.orgId="$ANYPOINT_ORG_ID" \
+            -Danypoint.target="$ANYPOINT_TARGET" \
+            -Danypoint.api.id="$ANYPOINT_API_ID" \
+            -Dsecure.key="$MULE_SECURE_KEY"
+        env:
+          # Every one of these is an environment-scoped GitHub secret. None has
+          # a default, so a missing secret fails the deployment loudly rather
+          # than deploying with a placeholder.
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+          ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+          ANYPOINT_ORG_ID: ${{ secrets.ANYPOINT_ORG_ID }}
+          ANYPOINT_TARGET: ${{ vars.ANYPOINT_TARGET }}
+          ANYPOINT_API_ID: ${{ secrets.ANYPOINT_API_ID }}
+          MULE_SECURE_KEY: ${{ secrets.MULE_SECURE_KEY }}
+
+      - name: Post-deployment health check
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -sf "${{ vars.HEALTH_URL }}" >/dev/null; then
+              echo "deployment healthy"; exit 0
+            fi
+            sleep 10
+          done
+          echo "::error::the deployed application did not become healthy"
+          exit 1

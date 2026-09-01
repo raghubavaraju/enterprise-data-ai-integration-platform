@@ -1,0 +1,9 @@
+# Runtime dependencies for the runnable POC services.
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+httpx==0.28.1
+duckdb==1.1.3
+python-json-logger==3.2.1
+PyJWT==2.10.1

@@ -1,0 +1,27 @@
+{
+    "customerId": "CRM-100046",
+    "type": "NEXT_BEST_ACTION",
+    "text": "{\"action\": \"RETENTION_OFFER_15_PCT\", \"priority\": \"HIGH\", \"justification\": \"churn risk is CRITICAL and there is no recorded purchase activity, which meets the KB-009 win-back threshold\"}",
+    "structured": {
+        "action": "RETENTION_OFFER_15_PCT",
+        "priority": "HIGH",
+        "justification": "churn risk is CRITICAL and there is no recorded purchase activity, which meets the KB-009 win-back threshold"
+    },
+    "confidence": 0.923,
+    "requiresHumanApproval": true,
+    "reviewStatus": "PENDING_REVIEW",
+    "generatedBy": {
+        "provider": "local",
+        "model": "acme-local-deterministic-v1"
+    },
+    "sources": [
+        "KB-009"
+    ],
+    "generatedAt": "2026-08-28T21:14:33.108827Z",
+    "cached": false,
+    "disclaimer": "AI-generated from Acme's own customer data. Verify before acting on it.",
+    "meta": {
+        "correlationId": "acme-d62b1006-afd4-4094-b8af-9372bb9034f7",
+        "idempotentReplay": false
+    }
+}

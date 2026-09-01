@@ -171,7 +171,7 @@ def verify_counts() -> None:
     for t in VERIFY_TABLES:
         try:
             # noqa: S608 - `t` comes from VERIFY_TABLES, a literal in this file.
-            n = con.execute(f"SELECT COUNT(*) FROM ACME_EDP.{t}").fetchone()[0]  # noqa: S608
+            n = con.execute(f"SELECT COUNT(*) FROM ACME_EDP.{t}").fetchone()[0]  # noqa: S608  # nosec B608
             print(f"  {t:42s} {n:7d}")
         except Exception as exc:                       # noqa: BLE001
             print(f"  {t:42s}   ERROR  {exc}")
