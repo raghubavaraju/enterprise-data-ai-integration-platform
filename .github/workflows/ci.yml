@@ -266,14 +266,35 @@ jobs:
         run: ./scripts/run_local.sh stop
 
   # --------------------------------------------------------- MuleSoft build
+  # A job cannot test a secret directly in its `if`, so one is turned into an
+  # output here. Without this the Mule job fails on any checkout that has no
+  # Anypoint subscription, which includes every fork and this repository until
+  # credentials are configured.
+  credentials-available:
+    name: Check optional credentials
+    runs-on: ubuntu-latest
+    outputs:
+      anypoint: ${{ steps.probe.outputs.anypoint }}
+    steps:
+      - id: probe
+        env:
+          ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
+        run: |
+          if [ -n "$ANYPOINT_CLIENT_ID" ]; then
+            echo "anypoint=true"  >> "$GITHUB_OUTPUT"
+          else
+            echo "anypoint=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::ANYPOINT_CLIENT_ID is not configured; the Mule build and MUnit job will be skipped."
+          fi
+
   mule-build:
     name: MuleSoft build and MUnit
     runs-on: ubuntu-latest
-    needs: [code-quality, api-contracts]
+    needs: [code-quality, api-contracts, credentials-available]
     # Requires Anypoint Exchange credentials to resolve the API specification
-    # dependencies and the MUnit plugin. Skipped on forks, where those secrets
-    # are not available - a fork must still be able to get a green build.
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}
+    # dependencies and the MUnit plugin. Skipped where they are absent, on a
+    # fork or here, because a build that cannot succeed should not report red.
+    if: ${{ needs.credentials-available.outputs.anypoint == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) }}
     strategy:
       fail-fast: false
       matrix:
