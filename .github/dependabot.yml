@@ -1,19 +1,35 @@
 version: 2
 updates:
+  # One grouped pull request per ecosystem instead of one per dependency.
   - package-ecosystem: pip
     directory: /services
     schedule: {interval: weekly}
     open-pull-requests-limit: 5
     labels: [dependencies]
+    groups:
+      python-runtime:
+        patterns: ["*"]
+  # The Mule build only runs where Anypoint credentials exist, so CI cannot
+  # verify these bumps here. Grouped monthly, reviewed by hand.
   - package-ecosystem: maven
     directory: /mule/experience-api
     schedule: {interval: monthly}
     labels: [dependencies, mulesoft]
+    groups:
+      mule:
+        patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /
     schedule: {interval: monthly}
     labels: [dependencies, ci]
+    groups:
+      actions:
+        patterns: ["*"]
+  # Keep the image on the same Python minor version CI tests against (3.11).
   - package-ecosystem: docker
     directory: /
     schedule: {interval: monthly}
     labels: [dependencies]
+    ignore:
+      - dependency-name: python
+        update-types: ["version-update:semver-minor", "version-update:semver-major"]
