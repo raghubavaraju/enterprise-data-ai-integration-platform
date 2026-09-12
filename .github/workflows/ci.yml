@@ -398,12 +398,12 @@ jobs:
         run: |
           mvn -B -ntp deploy -DmuleDeploy \
             -P${{ github.event.inputs.deploy_environment }} \
-            -Danypoint.client.id="$ANYPOINT_CLIENT_ID" \
-            -Danypoint.client.secret="$ANYPOINT_CLIENT_SECRET" \
-            -Danypoint.orgId="$ANYPOINT_ORG_ID" \
-            -Danypoint.target="$ANYPOINT_TARGET" \
-            -Danypoint.api.id="$ANYPOINT_API_ID" \
-            -Dsecure.key="$MULE_SECURE_KEY"
+            -Danypoint.client.id="${ANYPOINT_CLIENT_ID}" \
+            -Danypoint.client.secret="${ANYPOINT_CLIENT_SECRET}" \
+            -Danypoint.orgId="${ANYPOINT_ORG_ID}" \
+            -Danypoint.target="${ANYPOINT_TARGET}" \
+            -Danypoint.api.id="${ANYPOINT_API_ID}" \
+            -Dsecure.key="${MULE_SECURE_KEY}"
         env:
           # Every one of these is an environment-scoped GitHub secret. None has
           # a default, so a missing secret fails the deployment loudly rather
