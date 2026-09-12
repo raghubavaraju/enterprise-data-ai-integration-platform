@@ -2,8 +2,7 @@
 
 **MuleSoft + Snowflake + AI-powered Customer Intelligence: architecture and proof of concept**
 
-[![CI](https://img.shields.io/badge/CI-GitHub%20Actions-2088FF?logo=githubactions&logoColor=white)](.github/workflows/ci.yml)
-[![Tests](https://img.shields.io/badge/tests-245%20passing-success)](tests/)
+[![CI](https://github.com/raghubavaraju/enterprise-data-ai-integration-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/raghubavaraju/enterprise-data-ai-integration-platform/actions/workflows/ci.yml)
 [![MuleSoft](https://img.shields.io/badge/MuleSoft-Mule%204.6-00A0DF?logo=mulesoft&logoColor=white)](mule/)
 [![Snowflake](https://img.shields.io/badge/Snowflake-Data%20Platform-29B5E8?logo=snowflake&logoColor=white)](snowflake/)
 
