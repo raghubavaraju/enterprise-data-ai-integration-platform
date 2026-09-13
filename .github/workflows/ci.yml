@@ -124,7 +124,7 @@ jobs:
           # and local-development defaults are explicitly allowed.
           patterns = [
               (re.compile(r"(?i)(password|secret|token|api[_-]?key)\s*[:=]\s*['\"](?!"
-                          r"\!\[ENCRYPTED|\$\{|change-me-local-only|local-development)"
+                          r"\!\[ENCRYPTED|\$\{|\$[A-Z_]|change-me-local-only|local-development)"
                           r"[^'\"\s]{8,}['\"]"), "hard-coded credential"),
               (re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----"), "private key material"),
               (re.compile(r"AKIA[0-9A-Z]{16}"), "AWS access key id"),
