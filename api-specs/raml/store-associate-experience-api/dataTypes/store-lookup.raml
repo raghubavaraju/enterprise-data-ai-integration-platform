@@ -1,0 +1,33 @@
+#%RAML 1.0 DataType
+type: object
+description: |
+  The store-floor customer lookup. Deliberately thinner than Customer360:
+  no e-mail, phone or date of birth in the shape at all, and no orders,
+  support, churn or AI blocks - see store-associate-experience-api.raml for
+  why.
+properties:
+  customerId: string
+  displayName:
+    type: string
+    description: Family name masked unless the token holds pii:read, which
+      this API's registered client is never issued.
+  segment?: string
+  status?: string
+  vip:
+    type: boolean
+    description: Derived from segment/valueTier, not the raw value tier itself.
+  loyalty?:
+    properties:
+      tier?: string
+      status?: string
+      pointsBalance?: integer
+      enrolledAt?: date-only
+  meta:
+    properties:
+      masked: boolean
+      partial: boolean
+      degradedFields?: string[]
+      dataCompletenessScore?: number
+      asOf?: datetime-only
+      correlationId: string
+      elapsedMs?: number

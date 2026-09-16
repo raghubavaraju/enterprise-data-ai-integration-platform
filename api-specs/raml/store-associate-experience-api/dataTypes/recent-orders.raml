@@ -1,0 +1,22 @@
+#%RAML 1.0 DataType
+type: object
+description: |
+  A short recent-order list, reshaped for a return/exchange conversation at
+  the counter. `status` and `itemCount` are this consumer's own vocabulary
+  for what the process layer calls `orderStatus` and `totalUnits`.
+properties:
+  customerId: string
+  orders:
+    type: array
+    items:
+      properties:
+        orderId: string
+        orderDate: date-only
+        status: string
+        netAmount: number
+        itemCount?: integer
+  meta:
+    properties:
+      partial: boolean
+      degradedFields?: string[]
+      correlationId: string

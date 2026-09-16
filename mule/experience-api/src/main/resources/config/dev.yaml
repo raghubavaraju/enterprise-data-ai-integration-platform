@@ -17,6 +17,17 @@ api:
   id: "${anypoint.api.id}"          # supplied by the pipeline per environment
   mainFlow: customer-experience-api-main
 
+# Second experience API, same application package, own listener and own
+# contract. It has no processApi block of its own below - it reads the same
+# processApi.host/port/timeoutMs as the service-desk API, because it calls
+# the same process layer under the same SLA.
+storeAssociateApi:
+  http:
+    port: "8093"
+  api:
+    id: "${anypoint.storeAssociateApi.id}"
+    mainFlow: store-associate-experience-api-main
+
 processApi:
   host: customer-360-process-api-dev.eu1.cloudhub.io
   port: "443"

@@ -12,6 +12,13 @@ api:
   id: "${anypoint.api.id}"
   mainFlow: customer-experience-api-main
 
+storeAssociateApi:
+  http:
+    port: "8093"
+  api:
+    id: "${anypoint.storeAssociateApi.id}"
+    mainFlow: store-associate-experience-api-main
+
 processApi:
   host: customer-360-process-api-uat.eu1.cloudhub.io
   port: "443"

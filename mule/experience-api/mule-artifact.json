@@ -3,6 +3,7 @@
   "configs": [
     "customer-experience-api.xml",
     "ai-insights-api.xml",
+    "store-associate-experience-api.xml",
     "global-config.xml",
     "global-error-handler.xml"
   ],

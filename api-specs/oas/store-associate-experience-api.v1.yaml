@@ -1,0 +1,214 @@
+openapi: 3.0.3
+info:
+  title: Acme Store Associate API
+  version: 1.0.0
+  description: |
+    Client-facing API for the handheld device used by staff on the retail
+    floor. This is the platform's **second** experience API.
+
+    **Layer:** Experience. It calls the same Customer 360 Process API as the
+    Customer Experience API (`customer-experience-api.v1.yaml`) - no change
+    was needed in the process layer or the system layer beneath it to add
+    this consumer. That is the whole reason the experience layer exists as
+    its own tier: a new consumer is a new shape at the edge, not a new
+    integration.
+
+    **What is different here, and why.** The shape is deliberately thinner
+    than the service-desk API's `/customers/{id}/360`:
+
+      - e-mail, phone and date of birth are not merely masked, they are
+        absent from the response entirely. A shared handheld screen is not
+        the place for a customer's e-mail address, masked or not.
+      - there is no orders-and-support-and-loyalty-and-churn-and-AI view.
+        A store associate needs a name, a loyalty tier and a short recent
+        order list - not a retention conversation.
+      - the client registered for this API (`acme-store-app-client`) holds
+        `customer:read` only. It is never issued `insights:read`,
+        `ai:invoke` or `pii:read`.
+  contact: {name: Acme Integration Platform Team, email: integration@acme-retail.example.com}
+  license: {name: MIT}
+
+servers:
+  - url: https://api.acme-retail.example.com/store-associate/v1
+    description: Production (illustrative)
+  - url: https://api-uat.acme-retail.example.com/store-associate/v1
+    description: UAT (illustrative)
+  - url: http://localhost:8093/api/v1
+    description: Local
+
+security:
+  - OAuth2ClientCredentials: [customer:read]
+
+tags:
+  - name: associate
+    description: Store-floor customer lookup
+  - name: operations
+    description: Health
+
+paths:
+  /associate/customers/{customerId}/lookup:
+    get:
+      tags: [associate]
+      operationId: getStoreAssociateLookup
+      summary: Minimal customer lookup for the store floor
+      description: |
+        Enough to greet a customer by name and know how to treat them: a
+        masked display name, segment, status, loyalty standing and a derived
+        VIP flag. Calls the process layer with every optional block turned
+        off, because a lookup at the counter has no latency budget to spend
+        on data this screen will not show.
+      security: [{OAuth2ClientCredentials: [customer:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+      responses:
+        '200':
+          description: The store-floor view, possibly partial.
+          headers:
+            x-correlation-id: {schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/StoreLookup'}
+              examples:
+                complete:
+                  summary: Captured from the running local platform
+                  value:
+                    customerId: CRM-100005
+                    displayName: "Sofia C***"
+                    segment: PREMIUM
+                    status: ACTIVE
+                    vip: true
+                    loyalty: {tier: BRONZE, status: ACTIVE, pointsBalance: 14085,
+                              enrolledAt: "2021-07-07"}
+                    meta:
+                      masked: true
+                      partial: false
+                      degradedFields: []
+                      dataCompletenessScore: 100
+                      asOf: "2026-09-16T23:39:03.79"
+                      correlationId: demo-store-1
+                      elapsedMs: 523.9
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '503': {$ref: '../fragments/error.oas.yaml#/components/responses/ServiceUnavailable'}
+
+  /associate/customers/{customerId}/recent-orders:
+    get:
+      tags: [associate]
+      operationId: getStoreAssociateRecentOrders
+      summary: A short recent-order list for a return or exchange conversation
+      description: |
+        Reshaped, not passed through: the process layer's `orderStatus` and
+        `totalUnits` become this consumer's `status` and `itemCount`. Two
+        experience APIs are free to name the same underlying fact differently
+        for their own audience.
+      security: [{OAuth2ClientCredentials: [customer:read]}]
+      parameters:
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CustomerId'
+        - $ref: '../fragments/common.oas.yaml#/components/parameters/CorrelationId'
+        - name: limit
+          in: query
+          schema: {type: integer, minimum: 1, maximum: 20, default: 5}
+      responses:
+        '200':
+          description: A bounded, most-recent-first order list.
+          headers:
+            x-correlation-id: {schema: {type: string}}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/RecentOrders'}
+              examples:
+                complete:
+                  summary: Captured from the running local platform
+                  value:
+                    customerId: CRM-100005
+                    orders:
+                      - orderId: ORD-200026
+                        orderDate: "2026-06-06"
+                        status: COMPLETED
+                        netAmount: 199.75
+                        itemCount: 5
+                    meta: {partial: false, degradedFields: [], correlationId: demo-store-2}
+        '401': {$ref: '../fragments/error.oas.yaml#/components/responses/Unauthorized'}
+        '403': {$ref: '../fragments/error.oas.yaml#/components/responses/Forbidden'}
+        '404': {$ref: '../fragments/error.oas.yaml#/components/responses/NotFound'}
+        '503': {$ref: '../fragments/error.oas.yaml#/components/responses/ServiceUnavailable'}
+
+  /health:
+    get:
+      tags: [operations]
+      operationId: getStoreAssociateHealth
+      summary: Liveness and circuit-breaker state
+      security: []
+      responses:
+        '200':
+          description: Service is up.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: {type: string, example: UP}
+                  service: {type: string, example: store-associate-api}
+                  circuitBreakers: {type: array, items: {type: object}}
+
+components:
+  securitySchemes:
+    OAuth2ClientCredentials:
+      $ref: '../fragments/common.oas.yaml#/components/securitySchemes/OAuth2ClientCredentials'
+  schemas:
+    Loyalty:
+      type: object
+      properties:
+        tier: {type: string, nullable: true}
+        status: {type: string, nullable: true}
+        pointsBalance: {type: integer, nullable: true}
+        enrolledAt: {type: string, format: date, nullable: true}
+
+    StoreLookupMeta:
+      type: object
+      properties:
+        masked: {type: boolean}
+        partial: {type: boolean}
+        degradedFields: {type: array, items: {type: string}}
+        dataCompletenessScore: {type: integer, nullable: true}
+        asOf: {type: string, format: date-time, nullable: true}
+        correlationId: {type: string}
+        elapsedMs: {type: number}
+
+    StoreLookup:
+      type: object
+      required: [customerId, meta]
+      properties:
+        customerId: {type: string, example: CRM-100005}
+        displayName: {type: string, description: "Family name masked unless the token holds pii:read, which this client is never issued."}
+        segment: {type: string, nullable: true}
+        status: {type: string, nullable: true}
+        vip: {type: boolean}
+        loyalty: {$ref: '#/components/schemas/Loyalty'}
+        meta: {$ref: '#/components/schemas/StoreLookupMeta'}
+
+    RecentOrder:
+      type: object
+      properties:
+        orderId: {type: string}
+        orderDate: {type: string, format: date}
+        status: {type: string}
+        netAmount: {type: number}
+        itemCount: {type: integer, nullable: true}
+
+    RecentOrdersMeta:
+      type: object
+      properties:
+        partial: {type: boolean}
+        degradedFields: {type: array, items: {type: string}}
+        correlationId: {type: string}
+
+    RecentOrders:
+      type: object
+      required: [customerId, orders, meta]
+      properties:
+        customerId: {type: string}
+        orders: {type: array, items: {$ref: '#/components/schemas/RecentOrder'}}
+        meta: {$ref: '#/components/schemas/RecentOrdersMeta'}

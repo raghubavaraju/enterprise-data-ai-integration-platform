@@ -24,6 +24,12 @@ processApi:
   clientId: "![ENCRYPTED_VALUE_PLACEHOLDER]"
   clientSecret: "![ENCRYPTED_VALUE_PLACEHOLDER]"
 
+# Distinct client credentials for the second experience API's outbound calls
+# to the process layer - narrower scope (customer:read only), same downstream.
+storeAssociateApi:
+  clientId: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+  clientSecret: "![ENCRYPTED_VALUE_PLACEHOLDER]"
+
 tls:
   truststore:
     password: "![ENCRYPTED_VALUE_PLACEHOLDER]"

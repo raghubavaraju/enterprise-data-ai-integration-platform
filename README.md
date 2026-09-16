@@ -95,7 +95,7 @@ make setup     # python dependencies
 make build     # build the local warehouse from the sample dataset
 make run       # start the platform (or `make up` for docker compose)
 make smoke     # end-to-end demonstration
-make test      # 245 tests, including the AI evaluation gate
+make test      # 253 tests, including the AI evaluation gate
 ```
 
 `make build` says exactly what it ran and what it skipped:
@@ -204,6 +204,33 @@ curl -s -X POST -H "Authorization: Bearer $TOKEN" \
 }
 ```
 
+```bash
+# Second consumer, same process API: a store-floor lookup with no orders, no
+# support history, no AI - and no e-mail, phone or birth date in the shape at all.
+STORE_TOKEN=$(curl -s -X POST localhost:8093/oauth/token \
+  -d "grant_type=client_credentials&client_id=acme-store-app-client\
+&client_secret=change-me-local-only&scope=customer:read" | jq -r .access_token)
+
+curl -s -H "Authorization: Bearer $STORE_TOKEN" -H "x-correlation-id: demo-store-1" \
+  "localhost:8093/api/v1/associate/customers/CRM-100005/lookup" | jq
+```
+
+```jsonc
+{
+  "customerId": "CRM-100005",
+  "displayName": "Sofia C***",                   // same masking rule, applied at a narrower client
+  "segment": "PREMIUM",
+  "status": "ACTIVE",
+  "vip": true,                                    // derived, never the raw value tier
+  "loyalty": { "tier": "BRONZE", "status": "ACTIVE", "pointsBalance": 14085, "enrolledAt": "2021-07-07" },
+  "meta": {
+    "masked": true, "partial": false, "degradedFields": [],
+    "dataCompletenessScore": 100,
+    "asOf": "2026-09-16T23:39:03.79", "correlationId": "demo-store-1", "elapsedMs": 523.9
+  }
+}
+```
+
 More captured-from-the-running-platform examples in [`docs/examples/`](docs/examples/).
 
 ---
@@ -233,13 +260,13 @@ More captured-from-the-running-platform examples in [`docs/examples/`](docs/exam
 ## What is in the repository
 
 ```
-api-specs/       6 OpenAPI 3.0 specs + a full RAML 1.0 tree with reusable fragments
+api-specs/       7 OpenAPI 3.0 specs + a full RAML 1.0 tree with reusable fragments
 mule/            4 Mule 4 applications: flows, DataWeave, MUnit, policies, per-env config
 snowflake/       35 SQL scripts across 6 schemas: DDL, transforms, C360, AI, DQ, security
 services/        the runnable stand-in: 3 API-led layers, SQL API, AI service, 5 source mocks
 local_warehouse/ DuckDB executing the real Snowflake SQL through a documented dialect shim
 sample-data/     deterministic dataset with 8 intentionally planted quality defects
-tests/           245 tests: unit, data, API, AI evaluation, integration
+tests/           253 tests: unit, data, API, AI evaluation, integration
 docs/            12 architecture documents, 8 ADRs, generated data dictionary
 diagrams/        10 diagram sets, 39 Mermaid diagrams
 .github/         CI: quality, contracts, security, tests, AI gate, Mule build, deploy
@@ -253,6 +280,16 @@ diagrams/        10 diagram sets, 39 Mermaid diagrams
 
 - **Three-layer API-led connectivity** with the boundary rules written down and
   checked in review, not just drawn.
+- **A second consumer, not just the claim of one.** The Store Associate API
+  (`api-specs/oas/store-associate-experience-api.v1.yaml`,
+  `mule/experience-api/.../store-associate-experience-api.xml`) is a second
+  experience API over the *same* process and system layers, unchanged: same
+  `processApi` connection config, same downstream contract, a thinner shape
+  and a narrower OAuth client (`customer:read` only, no `pii:read`).
+  `test_both_experience_apis_reuse_the_same_process_endpoint` checks that both
+  consumers' stubbed clients hit the identical process-layer path, so "one
+  integration, many consumers" is something the suite verifies, not something
+  the README asserts.
 - **Source normalisation that pays off**: the CRM's `CustomerNumber`, the OMS's
   `status`, the loyalty platform's 404-for-unenrolled, each absorbed in exactly
   one file.

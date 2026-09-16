@@ -22,6 +22,7 @@ class Settings(BaseSettings):
 
     # --- API-led endpoints -------------------------------------------------
     experience_api_port: int = 8080
+    store_experience_api_port: int = 8093
     process_api_port: int = 8091
     system_api_port: int = 8090
     data_api_port: int = 8092

@@ -1,0 +1,22 @@
+{
+  "customerId": "CRM-100005",
+  "displayName": "Sofia C***",
+  "segment": "PREMIUM",
+  "status": "ACTIVE",
+  "vip": true,
+  "loyalty": {
+    "tier": "BRONZE",
+    "status": "ACTIVE",
+    "pointsBalance": 14085,
+    "enrolledAt": "2021-07-07"
+  },
+  "meta": {
+    "masked": true,
+    "partial": false,
+    "degradedFields": [],
+    "dataCompletenessScore": 100,
+    "asOf": "2026-09-16T23:39:03.79",
+    "correlationId": "demo-store-1",
+    "elapsedMs": 523.9
+  }
+}
