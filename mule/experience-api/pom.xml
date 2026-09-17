@@ -131,6 +131,15 @@
             <classifier>raml</classifier>
             <type>zip</type>
         </dependency>
+        <!-- Second consumer, second contract: its own RAML artifact, pulled
+             from Exchange the same way the first one is. -->
+        <dependency>
+            <groupId>${anypoint.orgId}</groupId>
+            <artifactId>store-associate-experience-api</artifactId>
+            <version>1.0.0</version>
+            <classifier>raml</classifier>
+            <type>zip</type>
+        </dependency>
         <dependency>
             <groupId>com.mulesoft.munit</groupId>
             <artifactId>munit-runner</artifactId>

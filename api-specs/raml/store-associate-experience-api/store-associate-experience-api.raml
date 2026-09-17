@@ -1,0 +1,111 @@
+#%RAML 1.0
+title: Acme Store Associate API
+version: v1
+baseUri: https://api.acme-retail.example.com/store-associate/{version}
+mediaType: application/json
+protocols: [HTTPS]
+
+description: |
+  Client-facing API for the handheld device used by staff on the retail
+  floor. This is the platform's **second** experience API, and it is the
+  contract-level proof of a claim made everywhere else in this repository:
+  a new consumer gets a new experience API over the same process APIs,
+  never a change to them.
+
+  Published to Anypoint Exchange, same as `customer-experience-api`. The
+  Mule application's APIkit router (`mule/experience-api/src/main/mule/
+  store-associate-experience-api.xml`) is generated from this file; the OAS
+  equivalent in `api-specs/oas/` is what the rest of the toolchain reads.
+
+  Reuse, made explicit rather than left as a coincidence: this API's security
+  scheme, its correlation and standard-error traits, and its error data type
+  are the exact same fragments `customer-experience-api` publishes - included
+  by relative path below, not copied. Two experience APIs, one OAuth scheme,
+  one error contract.
+
+uses:
+  common: ../customer-experience-api/libraries/common.raml
+
+securitySchemes:
+  oauth2: !include ../customer-experience-api/securitySchemes/oauth2.raml
+
+securedBy: [oauth2]
+
+traits:
+  correlated:     !include ../customer-experience-api/traits/correlated.raml
+  standardErrors: !include ../customer-experience-api/traits/standard-errors.raml
+
+types:
+  StoreLookup:  !include dataTypes/store-lookup.raml
+  RecentOrders: !include dataTypes/recent-orders.raml
+  Error:        !include ../customer-experience-api/dataTypes/error.raml
+
+/associate:
+  /customers:
+    /{customerId}:
+      uriParameters:
+        customerId:
+          type: string
+          pattern: ^[A-Z]{3}-[0-9]{6}$
+          example: CRM-100005
+          description: CRM business key.
+      /lookup:
+        get:
+          displayName: Get store-floor lookup
+          description: |
+            Enough to greet a customer by name and know how to treat them: a
+            masked display name, segment, status, loyalty standing and a
+            derived VIP flag. E-mail, phone and date of birth are not in the
+            response at all - not masked, absent - because a shared handheld
+            screen is not where they belong.
+
+            One call to the Customer 360 Process API, with every optional
+            block (orders, support, AI) turned off: a lookup at the counter
+            has no latency budget to spend on data this screen will not show.
+          is: [correlated, standardErrors]
+          securedBy: [oauth2: {scopes: [customer:read]}]
+          responses:
+            200:
+              body:
+                application/json:
+                  type: StoreLookup
+                  example: !include examples/store-lookup.json
+      /recent-orders:
+        get:
+          displayName: Get recent orders for a return or exchange
+          description: |
+            A short, most-recent-first order list. Field names are this
+            consumer's own vocabulary (`status`, `itemCount`), reshaped at
+            this edge from the process layer's `orderStatus` and
+            `totalUnits` - proof that two experience APIs may describe the
+            same underlying order differently without either one touching
+            the layer they share.
+          is: [correlated, standardErrors]
+          securedBy: [oauth2: {scopes: [customer:read]}]
+          queryParameters:
+            limit:
+              type: integer
+              required: false
+              default: 5
+              minimum: 1
+              maximum: 20
+          responses:
+            200:
+              body:
+                application/json:
+                  type: RecentOrders
+                  example: !include examples/recent-orders.json
+
+/health:
+  get:
+    displayName: Health
+    securedBy: []
+    responses:
+      200:
+        body:
+          application/json:
+            type: object
+            properties:
+              status: string
+              service: string
+              circuitBreakers: object[]

@@ -9,6 +9,7 @@ flowchart TB
         PORT["Self-service portal<br/>acme-portal-client"]
         BATCH["Nightly extract<br/>acme-batch-client"]
         RO["Reporting<br/>acme-readonly-client"]
+        STA["Store associate handheld<br/>acme-store-app-client"]
     end
 
     subgraph GW["Anypoint API Gateway"]
@@ -18,6 +19,7 @@ flowchart TB
     subgraph EXP["Experience layer, one per consumer need"]
         CXA["<b>Customer Experience API</b><br/>shape / mask / client SLA"]
         AIA["<b>AI Insights API</b><br/>separate SLA, separate policies"]
+        SAA["<b>Store Associate API</b><br/>added later, no change below this box"]
     end
 
     subgraph PRO["Process layer, business processes"]
@@ -48,10 +50,13 @@ flowchart TB
     PORT --> POL
     BATCH --> POL
     RO --> POL
+    STA --> POL
     POL --> CXA
     POL --> AIA
+    POL --> SAA
 
     CXA --> C360
+    SAA --> C360
     AIA --> CIP
     C360 --> SFA
     C360 --> CRMA
@@ -89,3 +94,12 @@ Replacing the CRM changes `CRM System API` and nothing else. The CRM's
 ```
 mule/system-api/crm-system-api/src/main/resources/dw/crm-customer-to-canonical.dwl
 ```
+
+Adding a consumer changes only the Experience layer. `Store Associate API` is
+that claim exercised rather than illustrated: it is a later addition
+(`mule/experience-api/src/main/mule/store-associate-experience-api.xml`) that
+calls `C360` through the same `processApi` connection settings as
+`Customer Experience API`, and nothing in `PRO`, `SYS` or `BE` above changed
+to accommodate it - checked by
+`tests/api/test_gateway_layers.py::test_both_experience_apis_reuse_the_same_process_endpoint`,
+which asserts both experience APIs' calls land on the identical process path.

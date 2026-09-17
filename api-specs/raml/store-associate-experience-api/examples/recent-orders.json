@@ -1,0 +1,31 @@
+{
+  "customerId": "CRM-100005",
+  "orders": [
+    {
+      "orderId": "ORD-200026",
+      "orderDate": "2026-06-06",
+      "status": "COMPLETED",
+      "netAmount": 199.75,
+      "itemCount": 5
+    },
+    {
+      "orderId": "ORD-200016",
+      "orderDate": "2026-05-25",
+      "status": "COMPLETED",
+      "netAmount": 255.5,
+      "itemCount": 12
+    },
+    {
+      "orderId": "ORD-200028",
+      "orderDate": "2026-05-24",
+      "status": "COMPLETED",
+      "netAmount": 370.91,
+      "itemCount": 12
+    }
+  ],
+  "meta": {
+    "partial": false,
+    "degradedFields": [],
+    "correlationId": "demo-store-2"
+  }
+}

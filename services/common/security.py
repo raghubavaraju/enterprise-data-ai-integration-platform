@@ -63,6 +63,17 @@ _CLIENTS: dict[str, dict] = {
         "scopes": ["customer:read", "insights:read", "ai:invoke", "ai:write"],
         "sla": "internal",
     },
+    # A handheld device shared by staff on the retail floor - the second
+    # consumer of the Customer 360 process API (services/gateway/
+    # store_experience_layer.py). Deliberately the narrowest client in this
+    # table: no insights:read (a store associate does not see a churn score),
+    # no ai:invoke, and never pii:read, because a shared screen is not where an
+    # unmasked e-mail address belongs.
+    "acme-store-app-client": {
+        "secret": _settings.oauth_client_secret,
+        "scopes": ["customer:read"],
+        "sla": "silver",
+    },
 }
 
 

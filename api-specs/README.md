@@ -8,6 +8,7 @@ implementation, and not a Postman collection someone exported.
 |---|---|---|
 | Experience | Customer Experience API | `oas/customer-experience-api.v1.yaml`, `raml/customer-experience-api/` |
 | Experience | AI Insights API | `oas/ai-insights-api.v1.yaml` |
+| Experience | Store Associate API (second consumer, same process API) | `oas/store-associate-experience-api.v1.yaml`, `raml/store-associate-experience-api/` |
 | Process | Customer 360 Process API | `oas/customer-360-process-api.v1.yaml` |
 | Process | Customer Intelligence Process API | `oas/customer-intelligence-process-api.v1.yaml` |
 | System | Snowflake Data System API | `oas/snowflake-data-system-api.v1.yaml` |

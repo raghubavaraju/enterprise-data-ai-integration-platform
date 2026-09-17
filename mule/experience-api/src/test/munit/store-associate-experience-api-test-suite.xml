@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+      xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/munit
+        http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+        http://www.mulesoft.org/schema/mule/munit-tools
+        http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+
+    <!--
+      ==========================================================================
+      MUnit suite - Store Associate API
+      ==========================================================================
+      Fixtures come from ../resources/testdata/process-customer-360.json - the
+      exact file customer-experience-api-test-suite.xml already uses. That is
+      deliberate: if this suite needed its own fixture to pass, "two consumers
+      of one process API" would be an architecture diagram, not a fact this
+      test suite checks.
+
+      What these cases are chosen to prove, and not to inflate a coverage
+      number:
+
+        1. e-mail, phone and date of birth are not merely masked - they are
+           absent from the response shape entirely
+        2. the display name is masked the same way the service-desk API masks it
+        3. vip is derived from segment/valueTier, never the raw analytics figure
+        4. a partial upstream response is surfaced, not hidden
+        5. process-layer field names (orderStatus, totalUnits) are renamed to
+           this consumer's vocabulary (status, itemCount), never passed through
+        6. a malformed customerId is rejected before any downstream call
+    -->
+
+    <munit:config name="store-associate-experience-api-test-suite.xml">
+        <munit:parameterizations />
+    </munit:config>
+
+    <munit:before-suite name="set-test-properties">
+        <munit:set-event>
+            <munit:payload value="#[{}]" />
+        </munit:set-event>
+    </munit:before-suite>
+
+    <!-- =================================================================== -->
+    <munit:test name="lookup-omits-contact-fields-rather-than-masking-them"
+                description="E-mail, phone and birth date are not in the response shape at all.">
+        <munit:behavior>
+            <munit-tools:mock-when doc:name="Mock Customer 360 Process API"
+                                   processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/associate/customers/CRM-100005/lookup'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config" />
+        </munit:execution>
+
+        <munit:validation>
+            <munit-tools:assert-that expression="#[write(payload, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('sofia.chen'))]"
+                                     message="The e-mail address must not appear anywhere in the response." />
+            <munit-tools:assert-that expression="#[write(payload, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('+1402'))]"
+                                     message="The phone number must not appear anywhere in the response." />
+            <munit-tools:assert-that expression="#[write(payload, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('1960-06-06'))]"
+                                     message="The date of birth must not appear anywhere in the response." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="display-name-is-masked"
+                description="The family name is masked; the given name is kept so an associate can address the customer.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/associate/customers/CRM-100005/lookup'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.displayName]"
+                                     is="#[MunitTools::startsWith('Sofia')]" />
+            <munit-tools:assert-that expression="#[payload.displayName]"
+                                     is="#[MunitTools::not(MunitTools::containsString('Chen'))]" />
+            <munit-tools:assert-that expression="#[payload.meta.masked]"
+                                     is="#[MunitTools::equalTo(true)]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="vip-flag-is-derived-from-segment"
+                description="The fixture's profile.segment is PREMIUM, so vip must be true.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/associate/customers/CRM-100005/lookup'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.vip]"
+                                     is="#[MunitTools::equalTo(true)]" />
+            <!-- The raw figure that produced the flag must not leak into this shape. -->
+            <munit-tools:assert-that expression="#[write(payload, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('predictedClv'))]" />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="partial-upstream-response-is-surfaced"
+                description="When a source system was unavailable the response says so, same contract as the service-desk API.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360-degraded.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: {}, headers: {},
+                    method: 'GET', requestPath: '/api/v1/associate/customers/CRM-100005/lookup'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.meta.partial]"
+                                     is="#[MunitTools::equalTo(true)]" />
+            <munit-tools:assert-that expression="#[payload.meta.degradedFields]"
+                                     is="#[MunitTools::hasItem('loyalty')]" />
+            <munit-tools:assert-that expression="#[write(payload.meta, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('snowflake'))]"
+                                     message="Internal dependency names must not leak to a client." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="recent-orders-renames-process-layer-fields"
+                description="orderStatus/totalUnits become this consumer's status/itemCount.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload
+                        value='#[readUrl("classpath://testdata/process-customer-360.json", "application/json")]' />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'CRM-100005' }, queryParams: { limit: '2' }, headers: {},
+                    method: 'GET', requestPath: '/api/v1/associate/customers/CRM-100005/recent-orders'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\recent-orders:store-associate-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:assert-that expression="#[payload.orders[0].status]"
+                                     is="#[MunitTools::equalTo('COMPLETED')]" />
+            <munit-tools:assert-that expression="#[payload.orders[0].itemCount]"
+                                     is="#[MunitTools::equalTo(5)]" />
+            <munit-tools:assert-that expression="#[write(payload, 'application/json')]"
+                                     is="#[MunitTools::not(MunitTools::containsString('orderStatus'))]"
+                                     message="The process layer's own field name must not survive reshaping." />
+        </munit:validation>
+    </munit:test>
+
+    <!-- =================================================================== -->
+    <munit:test name="malformed-customer-id-is-rejected-before-any-downstream-call"
+                expectedErrorType="VALIDATION:INVALID"
+                description="Validation happens first, so a bad id costs no downstream call.">
+        <munit:behavior>
+            <munit-tools:mock-when processor="http:request">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+                <munit-tools:then-return>
+                    <munit-tools:payload value="#[{}]" />
+                </munit-tools:then-return>
+            </munit-tools:mock-when>
+        </munit:behavior>
+        <munit:execution>
+            <munit:set-event>
+                <munit:attributes value="#[{
+                    uriParams: { customerId: 'not-a-customer-id' }, queryParams: {}, headers: {},
+                    method: 'GET',
+                    requestPath: '/api/v1/associate/customers/not-a-customer-id/lookup'
+                }]" />
+            </munit:set-event>
+            <flow-ref name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config" />
+        </munit:execution>
+        <munit:validation>
+            <munit-tools:verify-call processor="http:request" times="0"
+                                     doc:name="Assert no downstream call was made">
+                <munit-tools:with-attributes>
+                    <munit-tools:with-attribute whereValue="Customer 360 Process API"
+                                                attributeName="doc:name" />
+                </munit-tools:with-attributes>
+            </munit-tools:verify-call>
+        </munit:validation>
+    </munit:test>
+</mule>

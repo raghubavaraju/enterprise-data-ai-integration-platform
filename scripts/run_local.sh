@@ -58,10 +58,11 @@ start ai-service         ai_service.app:app             8087 WAREHOUSE_ACCESS=ap
 start system-api         gateway.main:app               8090 GATEWAY_LAYER=system
 start process-api        gateway.main:app               8091 GATEWAY_LAYER=process
 start experience-api     gateway.main:app               8080 GATEWAY_LAYER=experience
+start store-experience-api gateway.main:app             8093 GATEWAY_LAYER=store-experience
 
 echo
 echo "Waiting for health checks..."
-for port in 8081 8082 8083 8084 8085 8092 8087 8090 8091 8080; do
+for port in 8081 8082 8083 8084 8085 8092 8087 8090 8091 8080 8093; do
   for _ in $(seq 1 40); do
     if curl -sf "http://127.0.0.1:$port/health" >/dev/null 2>&1; then
       printf '  :%s UP\n' "$port"; break

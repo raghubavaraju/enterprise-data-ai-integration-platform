@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit"
+      xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+      xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="
+        http://www.mulesoft.org/schema/mule/core
+        http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+        http://www.mulesoft.org/schema/mule/mule-apikit
+        http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd
+        http://www.mulesoft.org/schema/mule/ee/core
+        http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+        http://www.mulesoft.org/schema/mule/http
+        http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+        http://www.mulesoft.org/schema/mule/validation
+        http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+
+    <!--
+      ==========================================================================
+      Store Associate API  (experience layer - second consumer)
+      ==========================================================================
+      This application answers a claim made in every architecture document in
+      this repository but never, until this file, backed by a second running
+      flow: that a new consumer of the platform is a new experience API over
+      the existing process API, and costs the process and system layers
+      nothing.
+
+      Compare against customer-experience-api.xml in this same directory:
+
+        * different http:listener-config, different apikit:config, different
+          RAML (store-associate-experience-api.raml) - a genuinely separate
+          consumer contract, not a query parameter bolted onto the first one
+        * the SAME process-api-request-config properties (processApi.host,
+          processApi.port, processApi.timeoutMs from this app's dev/uat/prod
+          YAML) - the same downstream, unchanged
+        * a thinner shape: no e-mail, phone or date of birth in the contract
+          at all, no orders/support/loyalty/churn/AI in one call - a store
+          associate is not the audience for a retention conversation
+        * a narrower client: acme-store-app-client holds customer:read only,
+          registered in services/common/security.py and (in a deployed
+          environment) in API Manager's client-id-enforcement policy
+
+      Explicitly NOT here: orchestration, any knowledge of Snowflake or a
+      source system, any business rule. Same boundary as the first experience
+      API, drawn around a different consumer.
+
+      Python counterpart: services/gateway/store_experience_layer.py
+    -->
+
+    <http:listener-config name="store-associate-http-listener-config">
+        <http:listener-connection host="0.0.0.0" port="${storeAssociateApi.http.port}"
+                                  protocol="HTTPS" tlsContext="platform-tls-context" />
+    </http:listener-config>
+
+    <apikit:config name="store-associate-experience-api-config"
+                   raml="resource::${anypoint.orgId}:store-associate-experience-api:1.0.0:raml:zip:store-associate-experience-api.raml"
+                   outboundHeadersMapName="outboundHeaders"
+                   httpStatusVarName="httpStatus"
+                   keepRamlBaseUri="false"
+                   disableValidations="false" />
+
+    <!--
+      Same host, port and timeout budget as customer-experience-api.xml's
+      process-api-request-config, read from the same processApi.* properties.
+      Two request configs because each apikit application owns its own
+      connection pool, but the downstream and the SLA it is held to are
+      identical - this consumer gets no different a promise from the process
+      layer than the first one does.
+    -->
+    <http:request-config name="store-associate-process-request-config"
+                         responseTimeout="${processApi.timeoutMs}">
+        <http:request-connection host="${processApi.host}" port="${processApi.port}"
+                                 protocol="HTTPS" tlsContext="platform-tls-context" />
+        <http:default-headers>
+            <http:default-header key="client_id" value="${secure::storeAssociateApi.clientId}" />
+            <http:default-header key="client_secret" value="${secure::storeAssociateApi.clientSecret}" />
+        </http:default-headers>
+    </http:request-config>
+
+    <!-- ===================================================================
+         Main listener + router
+         =================================================================== -->
+    <flow name="store-associate-experience-api-main">
+        <http:listener config-ref="store-associate-http-listener-config" path="/api/v1/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body><![CDATA[#[payload]]]></http:body>
+                <http:headers><![CDATA[#[vars.outboundHeaders default {} ++
+                    {"x-correlation-id": correlationId}]]]></http:headers>
+            </http:error-response>
+        </http:listener>
+
+        <set-variable variableName="inboundCorrelationId"
+                      value="#[attributes.headers['x-correlation-id'] default correlationId]"
+                      doc:name="Adopt caller correlation id" />
+
+        <logger level="INFO" category="acme.experience.store-associate"
+                message='#["api_request method=" ++ attributes.method
+                          ++ " path=" ++ attributes.requestPath
+                          ++ " clientId=" ++ (attributes.headers.client_id default "unknown")
+                          ++ " correlationId=" ++ correlationId]' />
+
+        <apikit:router config-ref="store-associate-experience-api-config" />
+
+        <error-handler ref="global-error-handler" />
+    </flow>
+
+    <!-- ===================================================================
+         GET /associate/customers/{customerId}/lookup
+         =================================================================== -->
+    <flow name="get:\associate\customers\(customerId)\lookup:store-associate-experience-api-config">
+        <validation:matches-regex value="#[attributes.uriParams.customerId]"
+                                  regex="^[A-Z]{3}-[0-9]{6}$"
+                                  doc:name="Validate customerId format" />
+
+        <!-- Every optional block turned off: a lookup at the counter has no
+             latency budget to spend on data this screen will not show. -->
+        <http:request method="GET" config-ref="store-associate-process-request-config"
+                      path="/api/v1/customers/{customerId}/360"
+                      target="processResponse" doc:name="Customer 360 Process API">
+            <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:query-params><![CDATA[#[{
+                includeOrders: false, includeSupport: false, includeAi: false
+            }]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <reconnect frequency="200" count="2" />
+        </http:request>
+
+        <ee:transform doc:name="Shape store-floor lookup">
+            <ee:message>
+                <ee:set-payload resource="dw/store-lookup-response.dwl" />
+            </ee:message>
+        </ee:transform>
+
+        <logger level="INFO" category="acme.experience.store-associate"
+                message='#["store_lookup_served customerId=" ++ attributes.uriParams.customerId
+                          ++ " vip=" ++ (payload.vip default false)
+                          ++ " correlationId=" ++ correlationId]' />
+    </flow>
+
+    <!-- ===================================================================
+         GET /associate/customers/{customerId}/recent-orders
+         =================================================================== -->
+    <flow name="get:\associate\customers\(customerId)\recent-orders:store-associate-experience-api-config">
+        <validation:matches-regex value="#[attributes.uriParams.customerId]"
+                                  regex="^[A-Z]{3}-[0-9]{6}$"
+                                  doc:name="Validate customerId format" />
+
+        <http:request method="GET" config-ref="store-associate-process-request-config"
+                      path="/api/v1/customers/{customerId}/360"
+                      target="processResponse" doc:name="Customer 360 Process API">
+            <http:uri-params><![CDATA[#[{customerId: attributes.uriParams.customerId}]]]></http:uri-params>
+            <http:query-params><![CDATA[#[{
+                includeOrders: true, includeSupport: false, includeAi: false,
+                orderLimit: attributes.queryParams.limit default 5
+            }]]]></http:query-params>
+            <http:headers><![CDATA[#[{"x-correlation-id": correlationId}]]]></http:headers>
+            <reconnect frequency="200" count="2" />
+        </http:request>
+
+        <ee:transform doc:name="Shape recent orders">
+            <ee:message>
+                <ee:set-payload resource="dw/recent-orders-response.dwl" />
+            </ee:message>
+        </ee:transform>
+    </flow>
+
+    <!-- ===================================================================
+         GET /health
+         =================================================================== -->
+    <flow name="get:\health:store-associate-experience-api-config">
+        <ee:transform doc:name="Health">
+            <ee:message><ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+    status: "UP",
+    service: "store-associate-experience-api",
+    version: p('app.version') default "1.0.0",
+    environment: p('mule.env')
+}]]></ee:set-payload></ee:message>
+        </ee:transform>
+    </flow>
+</mule>

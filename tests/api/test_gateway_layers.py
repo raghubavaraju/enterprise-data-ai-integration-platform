@@ -125,6 +125,12 @@ def experience_app():
     return experience_layer
 
 
+@pytest.fixture()
+def store_app():
+    from gateway import store_experience_layer
+    return store_experience_layer
+
+
 # ---------------------------------------------------------------------------
 # System layer
 # ---------------------------------------------------------------------------
@@ -417,3 +423,106 @@ class TestExperienceLayer:
             "grant_type": "password", "client_id": "acme-portal-client",
             "client_secret": "x"})
         assert r.status_code == 400
+
+
+
+# ---------------------------------------------------------------------------
+# Store Associate Experience layer - the platform's second experience API
+# ---------------------------------------------------------------------------
+# Reuses PROCESS_RESPONSE from TestExperienceLayer above on purpose: if this
+# consumer needed a different process-layer fixture to pass, "two consumers,
+# one process API" would be a diagram, not a fact checked by this suite.
+STORE_PROCESS_RESPONSE = {
+    **PROCESS_RESPONSE,
+    "orders": [
+        {"orderId": "ORD-500", "orderDate": "2026-07-01", "orderStatus": "COMPLETED",
+         "channel": "WEB", "currencyCode": "USD", "orderAmount": 220.0,
+         "discountAmount": 20.0, "shippingAmount": 0.0, "netAmount": 200.0,
+         "lineCount": 2, "totalUnits": 3},
+    ],
+}
+
+
+class TestStoreAssociateExperienceLayer:
+    @pytest.fixture()
+    def client(self, store_app, monkeypatch):
+        monkeypatch.setattr(store_app, "process",
+                            StubClient("process-api",
+                                      {"/api/v1/customers": STORE_PROCESS_RESPONSE}))
+        return TestClient(store_app.app, raise_server_exceptions=False)
+
+    def test_both_experience_apis_reuse_the_same_process_endpoint(
+            self, store_app, experience_app, auth, monkeypatch):
+        """The architectural claim, checked directly rather than trusted.
+
+        Two independent stubs, one per experience API, each recording the
+        calls it received. If a second consumer needed the process layer to
+        expose something new, these two call logs would not be identical.
+        """
+        store_stub = StubClient("process-api", {"/api/v1/customers": PROCESS_RESPONSE})
+        monkeypatch.setattr(store_app, "process", store_stub)
+        TestClient(store_app.app, raise_server_exceptions=False).get(
+            "/api/v1/associate/customers/CRM-100005/lookup", headers=auth)
+
+        desk_stub = StubClient("process-api", {"/api/v1/customers": PROCESS_RESPONSE})
+        monkeypatch.setattr(experience_app, "process", desk_stub)
+        TestClient(experience_app.app, raise_server_exceptions=False).get(
+            "/api/v1/customers/CRM-100005/360", headers=auth)
+
+        assert store_stub.calls == desk_stub.calls == [
+            ("GET", "/api/v1/customers/CRM-100005/360")]
+
+    def test_lookup_omits_contact_fields_rather_than_masking_them(self, client, auth):
+        """Stronger than masking: e-mail, phone and birth date are not in the
+        shape at all, so there is nothing to leak by a masking bug."""
+        body = client.get("/api/v1/associate/customers/CRM-100005/lookup",
+                          headers=auth).json()
+        assert "profile" not in body
+        assert "email" not in body and "phone" not in body and "birthDate" not in body
+        assert "sofia.chen@example.com" not in str(body)
+
+    def test_display_name_is_masked(self, client, auth):
+        body = client.get("/api/v1/associate/customers/CRM-100005/lookup",
+                          headers=auth).json()
+        assert body["displayName"].startswith("Sofia")
+        assert "Chen" not in body["displayName"]
+        assert body["meta"]["masked"] is True
+
+    def test_the_narrow_store_scope_is_sufficient(self, client, token_factory):
+        """The client actually registered for this app - customer:read only -
+        must be enough. A test using a broader token would not prove that."""
+        token = token_factory("acme-store-app-client", "customer:read")
+        r = client.get("/api/v1/associate/customers/CRM-100005/lookup",
+                       headers={"Authorization": f"Bearer {token}"})
+        assert r.status_code == 200
+
+    def test_vip_flag_is_derived_from_segment(self, client, auth):
+        # PROCESS_RESPONSE's profile.segment is PREMIUM.
+        body = client.get("/api/v1/associate/customers/CRM-100005/lookup",
+                          headers=auth).json()
+        assert body["vip"] is True
+
+    def test_degraded_dependency_is_named_not_hidden(self, client, auth):
+        body = client.get("/api/v1/associate/customers/CRM-100005/lookup",
+                          headers=auth).json()
+        assert body["meta"]["partial"] is True
+        assert body["meta"]["degradedFields"] == ["loyalty"]
+        assert "snowflake" not in str(body["meta"]).lower()
+
+    def test_recent_orders_reshapes_process_layer_field_names(self, store_app, auth,
+                                                               monkeypatch):
+        monkeypatch.setattr(store_app, "process",
+                            StubClient("process-api",
+                                      {"/api/v1/customers": STORE_PROCESS_RESPONSE}))
+        client = TestClient(store_app.app, raise_server_exceptions=False)
+        order = client.get("/api/v1/associate/customers/CRM-100005/recent-orders",
+                           headers=auth).json()["orders"][0]
+        # This consumer's vocabulary, not the process layer's.
+        assert order["status"] == "COMPLETED"
+        assert order["itemCount"] == 3
+        assert "orderStatus" not in order and "totalUnits" not in order
+
+    def test_health_exposes_circuit_breaker_state(self, client):
+        body = client.get("/health").json()
+        assert body["status"] == "UP"
+        assert isinstance(body["circuitBreakers"], list)

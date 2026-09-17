@@ -3,6 +3,7 @@
 # account, a licence or a credit card.
 #
 #   :8080  experience API  (+ mock OAuth token endpoint)
+#   :8093  store associate experience API - second consumer, same process API
 #   :8091  process API
 #   :8090  system API layer
 #   :8092  Snowflake SQL API (local) - the ONLY process that opens the warehouse
@@ -127,6 +128,19 @@ services:
       PYTHONPATH: /app:/app/services
       PROCESS_API_URL: http://process-api:8091
     ports: ["8080:8080"]
+    depends_on: [process-api]
+
+  # A second consumer of the same process-api - no changes to process-api or
+  # system-api were needed to add this. See services/gateway/
+  # store_experience_layer.py.
+  store-experience-api:
+    <<: *common
+    command: uvicorn gateway.main:app --host 0.0.0.0 --port 8093
+    environment:
+      GATEWAY_LAYER: store-experience
+      PYTHONPATH: /app:/app/services
+      PROCESS_API_URL: http://process-api:8091
+    ports: ["8093:8093"]
     depends_on: [process-api]
 
 networks:

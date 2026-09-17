@@ -45,11 +45,13 @@ flowchart TB
         MK[Marketing platform]
         BI[BI and analysts]
         PT[Partner APIs]
+        SA[Store associate handheld]
     end
 
     subgraph Experience["Experience APIs, one per consumer"]
         CXA[Customer Experience API]
         AIA[AI Insights API]
+        SAA[Store Associate API]
     end
 
     subgraph Process["Process APIs: business processes"]
@@ -84,7 +86,9 @@ flowchart TB
     MK --> CXA
     BI --> AIA
     PT --> CXA
+    SA --> SAA
     CXA --> C360
+    SAA --> C360
     AIA --> CIP
     C360 --> SFA
     C360 --> CRMA
@@ -128,6 +132,15 @@ does. What it buys is worth more than the 15–30 ms:
 | Each consumer learns the CRM's `CustomerNumber`, the OMS's `status` field, and the loyalty platform's habit of 404-ing for unenrolled customers | Those quirks are absorbed once, in one application each |
 | A source system change is a co-ordinated release across every consumer | It is a change to one system API |
 | Adding a consumer means writing another integration | It means writing an experience API over process APIs that already exist |
+
+The Store Associate API is that row, not a hypothetical: a second experience
+application (`mule/experience-api/.../store-associate-experience-api.xml`,
+`api-specs/oas/store-associate-experience-api.v1.yaml`) that calls the same
+Customer 360 Process API `C360` node in the diagram above, through the same
+`processApi` connection settings, with a different contract, a thinner shape
+and a narrower OAuth client. Neither `C360` nor anything below it changed to
+add it. `tests/api/test_gateway_layers.py::test_both_experience_apis_reuse_the_same_process_endpoint`
+checks that both experience APIs' calls land on the identical process path.
 | Entitlement and masking are re-implemented per consumer, differently | They are enforced once, at the edge, from the token |
 | A source outage takes down whatever depended on it | The process layer degrades and says which part is missing |
 
@@ -200,13 +213,20 @@ same three layers, the same contracts, the same policies and the same error
 semantics in Python, as three separate processes.
 
 ```
-:8080 experience-api      ← services/gateway/experience_layer.py  ≡ mule/experience-api
-:8091 process-api         ← services/gateway/process_layer.py     ≡ mule/process-api
-:8090 system-api          ← services/gateway/system_layer.py      ≡ mule/system-api
-:8092 snowflake-data-api  ← services/data_api/app.py              ≡ Snowflake SQL API
-:8087 ai-service          ← services/ai_service/                  (identical in both modes)
+:8080 experience-api        ← services/gateway/experience_layer.py       ≡ mule/experience-api (customer-experience-api.xml)
+:8093 store-experience-api  ← services/gateway/store_experience_layer.py ≡ mule/experience-api (store-associate-experience-api.xml)
+:8091 process-api           ← services/gateway/process_layer.py          ≡ mule/process-api
+:8090 system-api            ← services/gateway/system_layer.py           ≡ mule/system-api
+:8092 snowflake-data-api    ← services/data_api/app.py                   ≡ Snowflake SQL API
+:8087 ai-service            ← services/ai_service/                       (identical in both modes)
 :8081-8085 mock CRM, OMS, Support, Loyalty, Catalogue
 ```
+
+`:8080` and `:8093` are two Python processes for two consumers, matching two
+flows inside the *same* Mule application module (`mule/experience-api`) - a
+second deployable Mule application was never needed, only a second flow and
+a second RAML, because the experience layer is exactly the boundary meant to
+absorb a new consumer.
 
 Where the Python and the Mule differ, **the Mule application is the
 authoritative statement of the design**. Every Python module names the Mule file
