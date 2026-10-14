@@ -1,10 +1,10 @@
 # Runtime dependencies for the runnable POC services.
-fastapi==0.141.1
-uvicorn[standard]==0.53.0
-pydantic==2.13.5
+fastapi==0.143.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.0
 pydantic-settings==2.15.0
 httpx==0.28.1
 python-multipart==0.0.32   # required by FastAPI Form() in the OAuth token endpoint
-duckdb==1.5.5
+duckdb==1.5.6
 python-json-logger==4.2.0
-PyJWT==2.14.0
+PyJWT==2.15.1
