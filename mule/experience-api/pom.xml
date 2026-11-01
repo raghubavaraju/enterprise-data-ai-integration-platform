@@ -16,8 +16,8 @@
 
     <properties>
         <app.runtime>4.6.0</app.runtime>
-        <mule.maven.plugin.version>4.10.1</mule.maven.plugin.version>
-        <munit.version>3.7.4</munit.version>
+        <mule.maven.plugin.version>4.10.3</mule.maven.plugin.version>
+        <munit.version>3.7.5</munit.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
@@ -89,13 +89,13 @@
         <dependency>
             <groupId>org.mule.connectors</groupId>
             <artifactId>mule-http-connector</artifactId>
-            <version>1.12.1</version>
+            <version>1.12.2</version>
             <classifier>mule-plugin</classifier>
         </dependency>
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-apikit-module</artifactId>
-            <version>1.12.6</version>
+            <version>1.13.4</version>
             <classifier>mule-plugin</classifier>
         </dependency>
         <dependency>
@@ -107,7 +107,7 @@
         <dependency>
             <groupId>org.mule.modules</groupId>
             <artifactId>mule-validation-module</artifactId>
-            <version>2.0.11</version>
+            <version>2.0.12</version>
             <classifier>mule-plugin</classifier>
         </dependency>
         <dependency>
